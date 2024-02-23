@@ -1,6 +1,7 @@
 import pygame
 import random
 import sys
+import os
 
 
 # Класс основы игры (размеры, экран, события)
@@ -9,35 +10,84 @@ class MainGame():
         pygame.init()
         self.screen_width = 720
         self.screen_height = 460
+        self.color = pygame.Color(128, 255, 0)
+
+        self.button_up_coords = [(20, 350), (400, 350), (400, 400)]
+        self.button_width = 300
+        self.button_height = 40
+        self.width_of_frame = 5
+        self.letter_height = 30
+
         self.score = 0
         self.lives = 3
         self.fps = pygame.time.Clock()
+
+    def set_fon(self):
+        fullname = os.path.join('images', 'forest.jpg')
+        try:
+            image = pygame.image.load(fullname)
+        except pygame.error as message:
+            print("Не удаётся загрузить:", 'forest.jpg')
+            raise SystemExit(message)
+        image = image.convert_alpha()
+        fon = pygame.transform.scale(image, (self.screen_width, self.screen_height))
+        self.play_surface.blit(fon, (0, 0))
+
+    def set_buttons(self):
+        text_for_buttons = ["Выбрать змейку", "Играть", "Выйти"]
+
+        font = pygame.font.Font(None, self.letter_height)
+
+        for i in range(len(self.button_up_coords)):
+            pygame.draw.rect(self.play_surface, self.color,
+                             (self.button_up_coords[i][0], self.button_up_coords[i][1], self.button_width,
+                              self.button_height), self.width_of_frame)
+            string_rendered = font.render(text_for_buttons[i], 1, pygame.Color('white'))
+            intro_rect = string_rendered.get_rect()
+            intro_rect.x = self.button_up_coords[i][0] + self.button_width // 2 - (len(text_for_buttons[i]) // 2) * 10
+            intro_rect.y = self.button_up_coords[i][1] + self.button_height // 2 - self.letter_height // 2
+            self.play_surface.blit(string_rendered, intro_rect)
 
     def create_surface(self):
         # создание стартового окна + основного окна.
         self.play_surface = pygame.display.set_mode((
             self.screen_width, self.screen_height))
         pygame.display.set_caption('Математическая змейка')
-        intro_text = ["Математическая змейка", "",
-                      "При поедании яблока - появляется математическая викторина на время",
+        self.set_fon()
+        self.set_buttons()
+
+        intro_text = ["Главное меню", "", "",
+                      "При поедании яблока - появляется математическая", "викторина на время",
                       "Конец игры при касании стенок, либо при 0 жизней."]
 
-        fon = pygame.transform.scale(self.play_surface, (self.screen_width, self.screen_height))
-        self.play_surface.blit(fon, (0, 0))
-        font = pygame.font.Font(None, 30)
-        text_coord = 50
+        font = pygame.font.Font(None, self.letter_height)
+        text_coord = 10
         for line in intro_text:
             string_rendered = font.render(line, 1, pygame.Color('white'))
             intro_rect = string_rendered.get_rect()
             text_coord += 10
-            intro_rect.top = text_coord
+            intro_rect.y = text_coord
             intro_rect.x = 10
             text_coord += intro_rect.height
             self.play_surface.blit(string_rendered, intro_rect)
+
         while True:
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     sys.exit()
+                elif event.type == pygame.MOUSEBUTTONDOWN:
+                    pos = pygame.mouse.get_pos()
+                    x = pos[0]
+                    y = pos[1]
+                    if self.button_up_coords[0][0] <= x <= self.button_up_coords[0][0] + self.button_width and \
+                            self.button_up_coords[0][1] <= y <= self.button_up_coords[0][1] + self.button_height:
+                        pass
+                    elif self.button_up_coords[1][0] <= x <= self.button_up_coords[1][0] + self.button_width and \
+                            self.button_up_coords[1][1] <= y <= self.button_up_coords[1][1] + self.button_height:
+                        return
+                    elif self.button_up_coords[2][0] <= x <= self.button_up_coords[2][0] + self.button_width and \
+                            self.button_up_coords[2][1] <= y <= self.button_up_coords[2][1] + self.button_height:
+                        sys.exit()
                 elif event.type == pygame.KEYDOWN or event.type == pygame.MOUSEBUTTONDOWN:
                     return
             pygame.display.flip()
