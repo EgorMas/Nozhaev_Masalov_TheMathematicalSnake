@@ -2,6 +2,10 @@ import pygame
 import random
 import sys
 import os
+import sqlite3
+
+CURRENT_SNAKE = ('Обычная змейка', (47, 208, 91), 1, 1)
+CURRENT_LEVEL = 1
 
 
 # Класс основы игры (размеры, экран, события)
@@ -44,24 +48,27 @@ class MainGame():
                               self.button_height), self.width_of_frame)
             string_rendered = font.render(text_for_buttons[i], 1, pygame.Color('white'))
             intro_rect = string_rendered.get_rect()
-            intro_rect.x = self.button_up_coords[i][0] + self.button_width // 2 - (len(text_for_buttons[i]) // 2) * 10
-            intro_rect.y = self.button_up_coords[i][1] + self.button_height // 2 - self.letter_height // 2
+            intro_rect.x = self.button_up_coords[i][0] + self.button_width // 2 - ((len(text_for_buttons[i]) // 2) * \
+                                                                                   (self.letter_height // 3))
+            intro_rect.y = self.button_up_coords[i][1] + self.button_height // 2 - self.letter_height // 3
             self.play_surface.blit(string_rendered, intro_rect)
 
-    def create_surface(self):
-        # создание стартового окна + основного окна.
-        self.play_surface = pygame.display.set_mode((
-            self.screen_width, self.screen_height))
-        pygame.display.set_caption('Математическая змейка')
-        self.set_fon()
-        self.set_buttons()
+    def set_title(self):
+        text = 'Главное меню'
+        coeff = self.screen_width // 2 - ((len(text) // 2) * (self.letter_height // 3))
+        font = pygame.font.Font(None, self.letter_height + 10)
+        string_rendered = font.render(text, 1, pygame.Color('white'))
+        intro_rect = string_rendered.get_rect()
+        intro_rect.x = coeff
+        intro_rect.y = 5
+        self.play_surface.blit(string_rendered, intro_rect)
 
-        intro_text = ["Главное меню", "", "",
-                      "При поедании яблока - появляется математическая", "викторина на время",
-                      "Конец игры при касании стенок, либо при 0 жизней."]
+    def set_text(self):
+        intro_text = ["Описание: При поедании яблока - появляется математическая",
+                      "викторина на время. Конец игры при касании стенок,", "либо при 0 жизней."]
 
         font = pygame.font.Font(None, self.letter_height)
-        text_coord = 10
+        text_coord = 90
         for line in intro_text:
             string_rendered = font.render(line, 1, pygame.Color('white'))
             intro_rect = string_rendered.get_rect()
@@ -70,6 +77,70 @@ class MainGame():
             intro_rect.x = 10
             text_coord += intro_rect.height
             self.play_surface.blit(string_rendered, intro_rect)
+
+    def get_from_data(self):
+        fullname = os.path.join('data', 'Permanent_base.db')
+        try:
+            sqlite_connection = sqlite3.connect(fullname)
+            cursor = sqlite_connection.cursor()
+
+            sqlite_select_query = """SELECT * from Last_information"""
+            cursor.execute(sqlite_select_query)
+            records = cursor.fetchone()
+            cursor.close()
+
+        except sqlite3.Error as error:
+            print("Ошибка при работе с SQLite", error)
+        finally:
+            if sqlite_connection:
+                sqlite_connection.close()
+        return records
+
+
+    def set_information(self):
+        scores = self.get_from_data()
+        named_text = ["Текущая змейка: ", "Лучшие результаты по уровням:"]
+        levels_text = ["Первый уровень:        ", "Второй уровень:         ", "Третий  уровень:        ",
+                       "Четвёртый уровень:   ", "Пятый уровень:          "]
+
+        font = pygame.font.Font(None, self.letter_height - 5)
+        text_coord = 80
+
+        text = named_text[0] + CURRENT_SNAKE[0]
+        string_rendered = font.render(text, 1, pygame.Color('red'))
+        intro_rect = string_rendered.get_rect()
+        intro_rect.x = 20
+        intro_rect.y = text_coord
+        text_coord += (self.letter_height - 5) * 2
+        self.play_surface.blit(string_rendered, intro_rect)
+
+        text_2 = named_text[1]
+        string_rendered = font.render(text_2, 1, pygame.Color('white'))
+        intro_rect = string_rendered.get_rect()
+        intro_rect.x = 20
+        intro_rect.y = text_coord
+        text_coord += self.letter_height - 5
+        self.play_surface.blit(string_rendered, intro_rect)
+
+        for i in range(5):
+            text_for_setting = levels_text[i] + str(scores[i])
+            string_rendered = font.render(text_for_setting, 1, pygame.Color('white'))
+            intro_rect = string_rendered.get_rect()
+            intro_rect.x = 20
+            intro_rect.y = text_coord
+            text_coord += self.letter_height - 15
+            text_coord += intro_rect.height
+            self.play_surface.blit(string_rendered, intro_rect)
+
+    def create_surface(self):
+        # создание стартового окна + основного окна.
+        self.play_surface = pygame.display.set_mode((self.screen_width, self.screen_height))
+        pygame.display.set_caption('Математическая змейка')
+        self.set_fon()
+        self.set_buttons()
+        self.set_title()
+        # self.set_text()
+        self.set_information()
 
         while True:
             for event in pygame.event.get():
@@ -88,8 +159,6 @@ class MainGame():
                     elif self.button_up_coords[2][0] <= x <= self.button_up_coords[2][0] + self.button_width and \
                             self.button_up_coords[2][1] <= y <= self.button_up_coords[2][1] + self.button_height:
                         sys.exit()
-                elif event.type == pygame.KEYDOWN or event.type == pygame.MOUSEBUTTONDOWN:
-                    return
             pygame.display.flip()
 
     def event(self, dir):
@@ -156,6 +225,10 @@ class MainGame():
                     if event.key == pygame.K_ESCAPE or event.key == pygame.K_BACKSPACE:
                         sys.exit()
             pygame.display.flip()
+
+
+class Chek_snake():
+    pass
 
 
 class Snake():
