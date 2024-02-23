@@ -14,17 +14,13 @@ class MainGame():
         pygame.init()
         self.screen_width = 720
         self.screen_height = 460
-        self.color = pygame.Color(128, 255, 0)
 
+        self.color = pygame.Color(128, 255, 0)
         self.button_up_coords = [(20, 350), (400, 350), (400, 400)]
         self.button_width = 300
         self.button_height = 40
         self.width_of_frame = 5
         self.letter_height = 30
-
-        self.score = 0
-        self.lives = 3
-        self.fps = pygame.time.Clock()
 
     def set_fon(self):
         fullname = os.path.join('images', 'forest.jpg')
@@ -88,14 +84,12 @@ class MainGame():
             cursor.execute(sqlite_select_query)
             records = cursor.fetchone()
             cursor.close()
+            sqlite_connection.close()
 
         except sqlite3.Error as error:
             print("Ошибка при работе с SQLite", error)
-        finally:
-            if sqlite_connection:
-                sqlite_connection.close()
-        return records
 
+        return records
 
     def set_information(self):
         scores = self.get_from_data()
@@ -152,7 +146,8 @@ class MainGame():
                     y = pos[1]
                     if self.button_up_coords[0][0] <= x <= self.button_up_coords[0][0] + self.button_width and \
                             self.button_up_coords[0][1] <= y <= self.button_up_coords[0][1] + self.button_height:
-                        pass
+                        window = Check_snake()
+                        window.create_surface()
                     elif self.button_up_coords[1][0] <= x <= self.button_up_coords[1][0] + self.button_width and \
                             self.button_up_coords[1][1] <= y <= self.button_up_coords[1][1] + self.button_height:
                         return
@@ -160,6 +155,52 @@ class MainGame():
                             self.button_up_coords[2][1] <= y <= self.button_up_coords[2][1] + self.button_height:
                         sys.exit()
             pygame.display.flip()
+
+
+class Check_snake():
+    def __init__(self):
+        pygame.init()
+        self.screen_width = 720
+        self.screen_height = 460
+        self.color = pygame.Color(128, 255, 0)
+
+        self.button_up_coords = [(20, 350), (400, 350), (400, 400)]
+        self.button_width = 300
+        self.button_height = 40
+        self.width_of_frame = 5
+        self.letter_height = 30
+
+        self.score = 0
+        self.lives = 3
+        self.fps = pygame.time.Clock()
+
+    def create_surface(self):
+        self.play_surface = pygame.display.set_mode((self.screen_width, self.screen_height))
+        pygame.display.set_caption('Математическая змейка')
+
+        while True:
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    sys.exit()
+                elif event.type == pygame.MOUSEBUTTONDOWN:
+                    window = MainGame()
+                    window.create_surface()
+            pygame.display.flip()
+
+
+class Game_palce():
+    def __init__(self):
+        pygame.init()
+        self.screen_width = 720
+        self.screen_height = 460
+
+        self.score = 0
+        self.lives = 3
+        self.fps = pygame.time.Clock()
+
+    def create_surface(self):
+        self.play_surface = pygame.display.set_mode((self.screen_width, self.screen_height))
+        pygame.display.set_caption('Математическая змейка')
 
     def event(self, dir):
         # обработка событий (нажатие клавиш, выход)
@@ -225,10 +266,6 @@ class MainGame():
                     if event.key == pygame.K_ESCAPE or event.key == pygame.K_BACKSPACE:
                         sys.exit()
             pygame.display.flip()
-
-
-class Chek_snake():
-    pass
 
 
 class Snake():
@@ -447,6 +484,9 @@ game = MainGame()
 snake = Snake()
 food = Food(game.screen_width, game.screen_height)
 
+game.create_surface()
+
+game = Game_palce()
 game.create_surface()
 
 while True:
