@@ -378,6 +378,7 @@ class Level_choice():
         self.letter_height = int((self.screen_height * 6.52) // 100)
 
     def create_surface(self):
+        global CURRENT_LEVEL
         self.choice_surface = pygame.display.set_mode((self.screen_width, self.screen_height))
         pygame.display.set_caption('Математическая змейка')
 
@@ -395,23 +396,24 @@ class Level_choice():
                     y = pos[1]
                     if self.button_up_coords[0][0] <= x <= self.button_up_coords[0][0] + self.button_width and \
                             self.button_up_coords[0][1] <= y <= self.button_up_coords[0][1] + self.button_height:
-                        print(1)
+                        CURRENT_LEVEL = 1
                     elif self.button_up_coords[1][0] <= x <= self.button_up_coords[1][0] + self.button_width and \
                             self.button_up_coords[1][1] <= y <= self.button_up_coords[1][1] + self.button_height:
-                        print(2)
+                        CURRENT_LEVEL = 2
                     elif self.button_up_coords[2][0] <= x <= self.button_up_coords[2][0] + self.button_width and \
                             self.button_up_coords[2][1] <= y <= self.button_up_coords[2][1] + self.button_height:
-                        print(3)
+                        CURRENT_LEVEL = 3
                     elif self.button_up_coords[3][0] <= x <= self.button_up_coords[3][0] + self.button_width and \
                             self.button_up_coords[3][1] <= y <= self.button_up_coords[3][1] + self.button_height:
-                        print(4)
+                        CURRENT_LEVEL = 4
                     elif self.button_up_coords[4][0] <= x <= self.button_up_coords[4][0] + self.button_width and \
                             self.button_up_coords[4][1] <= y <= self.button_up_coords[4][1] + self.button_height:
-                        print(5)
+                        CURRENT_LEVEL = 5
                     elif self.button_up_coords[5][0] <= x <= self.button_up_coords[5][0] + self.button_width and \
                             self.button_up_coords[5][1] <= y <= self.button_up_coords[5][1] + self.button_height:
                         window = MainGame()
                         window.create_surface()
+                    self.next()
             pygame.display.flip()
 
     def set_title(self):
@@ -463,6 +465,32 @@ class Level_choice():
             string_rendered, intro_rect = set_text_global(text_for_buttons[i], self.letter_height, x_coord, y_coord,
                                                           "black")
             self.choice_surface.blit(string_rendered, intro_rect)
+
+    def next(self):
+        game1 = MainGame()
+        snake = Snake()
+        food = Food(game1.screen_width, game1.screen_height)
+
+        game = Game_palce()
+        game.create_surface()
+
+        while True:
+            snake.dir = game.event(snake.change_dir)
+
+            snake.change_dir()
+            snake.head_position()
+            game.score, food.food_pos = snake.snake_body_create(
+                game.score, food.food_pos, game.screen_width, game.screen_height)
+            snake.draw_snake(game.play_surface)
+
+            food.draw_food(game.play_surface)
+
+            snake.check_collision(
+                game.game_over, game.screen_width, game.screen_height)
+
+            game.text_score_and_lives()
+            pygame.display.flip()
+            game.fps.tick(17)
 
 
 class Game_palce():
