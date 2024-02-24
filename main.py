@@ -8,7 +8,36 @@ CURRENT_SNAKE = ('Обычная змейка', (47, 208, 91), 1, 1)
 CURRENT_LEVEL = 1
 
 
-# Класс основы игры (размеры, экран, события)
+def set_fon_global(name):
+    fullname = os.path.join('images', name)
+    try:
+        image = pygame.image.load(fullname)
+    except pygame.error as message:
+        print("Не удаётся загрузить:", name)
+        raise SystemExit(message)
+    image = image.convert_alpha()
+    return image
+
+
+def set_title_global(text, screen_width, letter_height, color="white"):
+    coeff = screen_width // 2 - ((len(text) // 2) * (letter_height // 3))
+    font = pygame.font.Font(None, letter_height + 10)
+    string_rendered = font.render(text, 1, pygame.Color(color))
+    intro_rect = string_rendered.get_rect()
+    intro_rect.x = coeff
+    intro_rect.y = 5
+    return string_rendered, intro_rect
+
+
+def set_text_global(text, letter_height, x_coord, y_coord, color="white"):
+    font = pygame.font.Font(None, letter_height - 5)
+    string_rendered = font.render(text, 1, pygame.Color(color))
+    intro_rect = string_rendered.get_rect()
+    intro_rect.x = x_coord
+    intro_rect.y = y_coord
+    return string_rendered, intro_rect
+
+
 class MainGame():
     def __init__(self):
         pygame.init()
@@ -23,56 +52,39 @@ class MainGame():
         self.letter_height = 30
 
     def set_fon(self):
-        fullname = os.path.join('images', 'forest.jpg')
-        try:
-            image = pygame.image.load(fullname)
-        except pygame.error as message:
-            print("Не удаётся загрузить:", 'forest.jpg')
-            raise SystemExit(message)
-        image = image.convert_alpha()
-        fon = pygame.transform.scale(image, (self.screen_width, self.screen_height))
+        fon = pygame.transform.scale(set_fon_global('forest.jpg'), (self.screen_width, self.screen_height))
         self.play_surface.blit(fon, (0, 0))
+
+    def set_title(self):
+        text = "Главное меню"
+        string_rendered, intro_rect = set_title_global(text, self.screen_width, self.letter_height)
+        self.play_surface.blit(string_rendered, intro_rect)
 
     def set_buttons(self):
         text_for_buttons = ["Выбрать змейку", "Играть", "Выйти"]
-
-        font = pygame.font.Font(None, self.letter_height)
 
         for i in range(len(self.button_up_coords)):
             pygame.draw.rect(self.play_surface, self.color,
                              (self.button_up_coords[i][0], self.button_up_coords[i][1], self.button_width,
                               self.button_height), self.width_of_frame)
-            string_rendered = font.render(text_for_buttons[i], 1, pygame.Color('white'))
-            intro_rect = string_rendered.get_rect()
-            intro_rect.x = self.button_up_coords[i][0] + self.button_width // 2 - ((len(text_for_buttons[i]) // 2) * \
-                                                                                   (self.letter_height // 3))
-            intro_rect.y = self.button_up_coords[i][1] + self.button_height // 2 - self.letter_height // 3
-            self.play_surface.blit(string_rendered, intro_rect)
 
-    def set_title(self):
-        text = 'Главное меню'
-        coeff = self.screen_width // 2 - ((len(text) // 2) * (self.letter_height // 3))
-        font = pygame.font.Font(None, self.letter_height + 10)
-        string_rendered = font.render(text, 1, pygame.Color('white'))
-        intro_rect = string_rendered.get_rect()
-        intro_rect.x = coeff
-        intro_rect.y = 5
-        self.play_surface.blit(string_rendered, intro_rect)
+            x_coord = self.button_up_coords[i][0] + self.button_width // 2 - ((len(text_for_buttons[i]) // 2) * \
+                                                                              (self.letter_height // 3))
+            y_coord = self.button_up_coords[i][1] + self.button_height // 2 - self.letter_height // 3
+            string_rendered, intro_rect = set_text_global(text_for_buttons[i], self.letter_height, x_coord, y_coord)
+            self.play_surface.blit(string_rendered, intro_rect)
 
     def set_text(self):
         intro_text = ["Описание: При поедании яблока - появляется математическая",
                       "викторина на время. Конец игры при касании стенок,", "либо при 0 жизней."]
 
-        font = pygame.font.Font(None, self.letter_height)
-        text_coord = 90
+        y_coord = 90
+        x_coord = 10
         for line in intro_text:
-            string_rendered = font.render(line, 1, pygame.Color('white'))
-            intro_rect = string_rendered.get_rect()
-            text_coord += 10
-            intro_rect.y = text_coord
-            intro_rect.x = 10
-            text_coord += intro_rect.height
+            string_rendered, intro_rect = set_text_global(line, self.letter_height, x_coord, y_coord)
             self.play_surface.blit(string_rendered, intro_rect)
+            y_coord += 10
+            y_coord += intro_rect.height
 
     def get_from_data(self):
         fullname = os.path.join('data', 'Permanent_base.db')
@@ -92,44 +104,36 @@ class MainGame():
         return records
 
     def set_information(self):
+        global CURRENT_SNAKE
         scores = self.get_from_data()
         named_text = ["Текущая змейка: ", "Лучшие результаты по уровням:"]
         levels_text = ["Первый уровень:        ", "Второй уровень:         ", "Третий  уровень:        ",
                        "Четвёртый уровень:   ", "Пятый уровень:          "]
 
-        font = pygame.font.Font(None, self.letter_height - 5)
-        text_coord = 80
+        y_coord = 80
+        x_coord = 20
 
         text = named_text[0] + CURRENT_SNAKE[0]
-        string_rendered = font.render(text, 1, pygame.Color('red'))
-        intro_rect = string_rendered.get_rect()
-        intro_rect.x = 20
-        intro_rect.y = text_coord
-        text_coord += (self.letter_height - 5) * 2
+        string_rendered, intro_rect = set_text_global(text, self.letter_height, x_coord, y_coord, "red")
         self.play_surface.blit(string_rendered, intro_rect)
 
+        y_coord += (self.letter_height - 5) * 2
         text_2 = named_text[1]
-        string_rendered = font.render(text_2, 1, pygame.Color('white'))
-        intro_rect = string_rendered.get_rect()
-        intro_rect.x = 20
-        intro_rect.y = text_coord
-        text_coord += self.letter_height - 5
+        string_rendered, intro_rect = set_text_global(text_2, self.letter_height, x_coord, y_coord, "white")
         self.play_surface.blit(string_rendered, intro_rect)
 
+        y_coord += self.letter_height - 5
         for i in range(5):
             text_for_setting = levels_text[i] + str(scores[i])
-            string_rendered = font.render(text_for_setting, 1, pygame.Color('white'))
-            intro_rect = string_rendered.get_rect()
-            intro_rect.x = 20
-            intro_rect.y = text_coord
-            text_coord += self.letter_height - 15
-            text_coord += intro_rect.height
+            string_rendered, intro_rect = set_text_global(text_for_setting, self.letter_height, x_coord, y_coord)
             self.play_surface.blit(string_rendered, intro_rect)
+            y_coord += self.letter_height - 15
+            y_coord += intro_rect.height
 
     def create_surface(self):
-        # создание стартового окна + основного окна.
         self.play_surface = pygame.display.set_mode((self.screen_width, self.screen_height))
         pygame.display.set_caption('Математическая змейка')
+
         self.set_fon()
         self.set_buttons()
         self.set_title()
@@ -175,8 +179,10 @@ class Check_snake():
         self.fps = pygame.time.Clock()
 
     def create_surface(self):
-        self.play_surface = pygame.display.set_mode((self.screen_width, self.screen_height))
+        self.terrarium_surface = pygame.display.set_mode((self.screen_width, self.screen_height))
         pygame.display.set_caption('Математическая змейка')
+        self.set_fon()
+        self.set_title()
 
         while True:
             for event in pygame.event.get():
@@ -186,6 +192,15 @@ class Check_snake():
                     window = MainGame()
                     window.create_surface()
             pygame.display.flip()
+
+    def set_fon(self):
+        fon = pygame.transform.scale(set_fon_global('Terrarium.jpg'), (self.screen_width, self.screen_height))
+        self.terrarium_surface.blit(fon, (0, 0))
+
+    def set_title(self):
+        text = "Террариум"
+        string_rendered, intro_rect = set_title_global(text, self.screen_width, self.letter_height, "black")
+        self.terrarium_surface.blit(string_rendered, intro_rect)
 
 
 class Game_palce():
