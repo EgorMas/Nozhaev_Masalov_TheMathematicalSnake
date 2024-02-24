@@ -4,6 +4,8 @@ import sys
 import os
 import sqlite3
 
+SIZE = (720, 460)
+BUTTON = [(128, 255, 0), 5]
 CURRENT_SNAKE = ('Обычная змейка', (47, 208, 91), 1, 1)
 CURRENT_LEVEL = 1
 
@@ -40,16 +42,19 @@ def set_text_global(text, letter_height, x_coord, y_coord, color="white"):
 
 class MainGame():
     def __init__(self):
+        global SIZE, BUTTON
         pygame.init()
-        self.screen_width = 720
-        self.screen_height = 460
+        self.screen_width = SIZE[0]
+        self.screen_height = SIZE[1]
 
-        self.color = pygame.Color(128, 255, 0)
+        corteg = BUTTON[0]
+        self.color = pygame.Color(corteg[0], corteg[1], corteg[2])
+        self.button_width = (self.screen_width * 41.6) // 100
+        self.button_height = (self.screen_height * 9) // 100
+        self.width_of_frame = BUTTON[1]
+
         self.button_up_coords = [(20, 350), (400, 350), (400, 400)]
-        self.button_width = 300
-        self.button_height = 40
-        self.width_of_frame = 5
-        self.letter_height = 30
+        self.letter_height = int((self.screen_height * 6.52) // 100)
 
     def set_fon(self):
         fon = pygame.transform.scale(set_fon_global('forest.jpg'), (self.screen_width, self.screen_height))
@@ -57,11 +62,17 @@ class MainGame():
 
     def set_title(self):
         text = "Главное меню"
-        string_rendered, intro_rect = set_title_global(text, self.screen_width, self.letter_height)
+        x_coord = self.screen_width / 2 - ((len(text) / 2) * ((self.letter_height + 15) / 3))
+        y_coord = self.screen_height / 100
+        string_rendered, intro_rect = set_text_global(text, self.letter_height + 15, x_coord, y_coord)
         self.play_surface.blit(string_rendered, intro_rect)
 
     def set_buttons(self):
         text_for_buttons = ["Выбрать змейку", "Играть", "Выйти"]
+        w = self.screen_width
+        h = self.screen_height
+        self.button_up_coords = [((w * 2.77) / 100, (h * 76.08) / 100), ((w * 55.56) / 100, (h * 76.08) / 100),
+                                 ((w * 55.56) / 100, (h * 86.95) / 100)]
 
         for i in range(len(self.button_up_coords)):
             pygame.draw.rect(self.play_surface, self.color,
@@ -78,12 +89,12 @@ class MainGame():
         intro_text = ["Описание: При поедании яблока - появляется математическая",
                       "викторина на время. Конец игры при касании стенок,", "либо при 0 жизней."]
 
-        y_coord = 90
-        x_coord = 10
+        y_coord = (self.screen_height * 19.56) / 100
+        x_coord = (self.screen_width * 1.39) / 100
         for line in intro_text:
             string_rendered, intro_rect = set_text_global(line, self.letter_height, x_coord, y_coord)
             self.play_surface.blit(string_rendered, intro_rect)
-            y_coord += 10
+            y_coord += (self.screen_height * 2.17) / 100
             y_coord += intro_rect.height
 
     def get_from_data(self):
@@ -110,8 +121,8 @@ class MainGame():
         levels_text = ["Первый уровень:        ", "Второй уровень:         ", "Третий  уровень:        ",
                        "Четвёртый уровень:   ", "Пятый уровень:          "]
 
-        y_coord = 80
-        x_coord = 20
+        y_coord = (self.screen_height * 17.39) / 100
+        x_coord = (self.screen_width * 2.78) / 100
 
         text = named_text[0] + CURRENT_SNAKE[0]
         string_rendered, intro_rect = set_text_global(text, self.letter_height, x_coord, y_coord, "red")
@@ -163,16 +174,20 @@ class MainGame():
 
 class Check_snake():
     def __init__(self):
+        global SIZE
         pygame.init()
-        self.screen_width = 720
-        self.screen_height = 460
+        self.screen_width = SIZE[0]
+        self.screen_height = SIZE[1]
         self.color = pygame.Color(128, 255, 0)
 
+        corteg = BUTTON[0]
+        self.color = pygame.Color(corteg[0], corteg[1], corteg[2])
+        self.button_width = (self.screen_width * 41.6) // 100
+        self.button_height = (self.screen_height * 9) // 100
+        self.width_of_frame = BUTTON[1]
+
         self.button_up_coords = [(20, 350), (400, 350), (400, 400)]
-        self.button_width = 300
-        self.button_height = 40
-        self.width_of_frame = 5
-        self.letter_height = 30
+        self.letter_height = int((self.screen_height * 6.52) // 100)
 
         self.score = 0
         self.lives = 3
@@ -199,15 +214,18 @@ class Check_snake():
 
     def set_title(self):
         text = "Террариум"
-        string_rendered, intro_rect = set_title_global(text, self.screen_width, self.letter_height, "black")
+        x_coord = self.screen_width / 2 - ((len(text) / 2) * ((self.letter_height + 15) / 3))
+        y_coord = self.screen_height / 100
+        string_rendered, intro_rect = set_text_global(text, self.letter_height + 15, x_coord, y_coord, "black")
         self.terrarium_surface.blit(string_rendered, intro_rect)
 
 
 class Game_palce():
     def __init__(self):
+        global SIZE
         pygame.init()
-        self.screen_width = 720
-        self.screen_height = 460
+        self.screen_width = SIZE[0]
+        self.screen_height = SIZE[1]
 
         self.score = 0
         self.lives = 3
