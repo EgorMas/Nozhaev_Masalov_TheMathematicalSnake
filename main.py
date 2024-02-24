@@ -6,8 +6,47 @@ import sqlite3
 
 SIZE = (720, 460)
 BUTTON = [(128, 255, 0), 5]
-CURRENT_SNAKE = ('Обычная змейка', (0, 0, 255), 1, 1)
+CURRENT_SNAKE = None
 CURRENT_LEVEL = 1
+
+
+def make_current_snake():
+    global CURRENT_SNAKE
+    if CURRENT_SNAKE == None:
+        fullname = os.path.join('data', 'Permanent_base.db')
+        try:
+            sqlite_connection = sqlite3.connect(fullname)
+            cursor = sqlite_connection.cursor()
+
+            sqlite_select_query = """SELECT Last_sanke_id from Last_information"""
+            cursor.execute(sqlite_select_query)
+            records = cursor.fetchone()
+            cursor.close()
+            sqlite_connection.close()
+
+        except sqlite3.Error as error:
+            print("Ошибка при работе с SQLite", error)
+
+        id = records[0]
+        fullname = os.path.join('data', 'Permanent_base.db')
+        try:
+            sqlite_connection = sqlite3.connect(fullname)
+            cursor = sqlite_connection.cursor()
+
+            sqlite_select_query = f"""SELECT * from Snakes WHERE id=={id}"""
+            cursor.execute(sqlite_select_query)
+            records = cursor.fetchone()
+            cursor.close()
+            sqlite_connection.close()
+
+        except sqlite3.Error as error:
+            print("Ошибка при работе с SQLite", error)
+
+        corteg = records
+        CURRENT_SNAKE = (corteg[1], (corteg[2], corteg[3], corteg[4]), corteg[5], corteg[6])
+
+
+make_current_snake()
 
 
 def set_fon_global(name):
@@ -45,6 +84,48 @@ class MainGame():
 
         self.letter_height = int((self.screen_height * 6.52) // 100)
 
+    def set_text(self):
+        intro_text = ["Описание: При поедании яблока - появляется математическая",
+                      "викторина на время. Конец игры при касании стенок,", "либо при 0 жизней."]
+
+        y_coord = (self.screen_height * 19.56) / 100
+        x_coord = (self.screen_width * 1.39) / 100
+        for line in intro_text:
+            string_rendered, intro_rect = set_text_global(line, self.letter_height, x_coord, y_coord)
+            self.play_surface.blit(string_rendered, intro_rect)
+            y_coord += (self.screen_height * 2.17) / 100
+            y_coord += intro_rect.height
+
+    def create_surface(self):
+        self.play_surface = pygame.display.set_mode((self.screen_width, self.screen_height))
+        pygame.display.set_caption('Математическая змейка')
+
+        self.set_fon()
+        self.set_title()
+        self.set_buttons()
+        # self.set_text()
+        self.set_information()
+
+        while True:
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    sys.exit()
+                elif event.type == pygame.MOUSEBUTTONDOWN:
+                    pos = pygame.mouse.get_pos()
+                    x = pos[0]
+                    y = pos[1]
+                    if self.button_up_coords[0][0] <= x <= self.button_up_coords[0][0] + self.button_width and \
+                            self.button_up_coords[0][1] <= y <= self.button_up_coords[0][1] + self.button_height:
+                        window = Choose_snake()
+                        window.create_surface()
+                    elif self.button_up_coords[1][0] <= x <= self.button_up_coords[1][0] + self.button_width and \
+                            self.button_up_coords[1][1] <= y <= self.button_up_coords[1][1] + self.button_height:
+                        return
+                    elif self.button_up_coords[2][0] <= x <= self.button_up_coords[2][0] + self.button_width and \
+                            self.button_up_coords[2][1] <= y <= self.button_up_coords[2][1] + self.button_height:
+                        sys.exit()
+            pygame.display.flip()
+
     def set_fon(self):
         fon = pygame.transform.scale(set_fon_global('forest.jpg'), (self.screen_width, self.screen_height))
         self.play_surface.blit(fon, (0, 0))
@@ -77,35 +158,6 @@ class MainGame():
             string_rendered, intro_rect = set_text_global(text_for_buttons[i], self.letter_height, x_coord, y_coord)
             self.play_surface.blit(string_rendered, intro_rect)
 
-    def set_text(self):
-        intro_text = ["Описание: При поедании яблока - появляется математическая",
-                      "викторина на время. Конец игры при касании стенок,", "либо при 0 жизней."]
-
-        y_coord = (self.screen_height * 19.56) / 100
-        x_coord = (self.screen_width * 1.39) / 100
-        for line in intro_text:
-            string_rendered, intro_rect = set_text_global(line, self.letter_height, x_coord, y_coord)
-            self.play_surface.blit(string_rendered, intro_rect)
-            y_coord += (self.screen_height * 2.17) / 100
-            y_coord += intro_rect.height
-
-    def get_from_data(self):
-        fullname = os.path.join('data', 'Permanent_base.db')
-        try:
-            sqlite_connection = sqlite3.connect(fullname)
-            cursor = sqlite_connection.cursor()
-
-            sqlite_select_query = """SELECT * from Last_information"""
-            cursor.execute(sqlite_select_query)
-            records = cursor.fetchone()
-            cursor.close()
-            sqlite_connection.close()
-
-        except sqlite3.Error as error:
-            print("Ошибка при работе с SQLite", error)
-
-        return records
-
     def set_information(self):
         global CURRENT_SNAKE
         scores = self.get_from_data()
@@ -133,38 +185,25 @@ class MainGame():
             y_coord += self.letter_height - (self.screen_height * 3.26) / 100
             y_coord += intro_rect.height
 
-    def create_surface(self):
-        self.play_surface = pygame.display.set_mode((self.screen_width, self.screen_height))
-        pygame.display.set_caption('Математическая змейка')
+    def get_from_data(self):
+        fullname = os.path.join('data', 'Permanent_base.db')
+        try:
+            sqlite_connection = sqlite3.connect(fullname)
+            cursor = sqlite_connection.cursor()
 
-        self.set_fon()
-        self.set_buttons()
-        self.set_title()
-        # self.set_text()
-        self.set_information()
+            sqlite_select_query = """SELECT * from Last_information"""
+            cursor.execute(sqlite_select_query)
+            records = cursor.fetchone()
+            cursor.close()
+            sqlite_connection.close()
 
-        while True:
-            for event in pygame.event.get():
-                if event.type == pygame.QUIT:
-                    sys.exit()
-                elif event.type == pygame.MOUSEBUTTONDOWN:
-                    pos = pygame.mouse.get_pos()
-                    x = pos[0]
-                    y = pos[1]
-                    if self.button_up_coords[0][0] <= x <= self.button_up_coords[0][0] + self.button_width and \
-                            self.button_up_coords[0][1] <= y <= self.button_up_coords[0][1] + self.button_height:
-                        window = Check_snake()
-                        window.create_surface()
-                    elif self.button_up_coords[1][0] <= x <= self.button_up_coords[1][0] + self.button_width and \
-                            self.button_up_coords[1][1] <= y <= self.button_up_coords[1][1] + self.button_height:
-                        return
-                    elif self.button_up_coords[2][0] <= x <= self.button_up_coords[2][0] + self.button_width and \
-                            self.button_up_coords[2][1] <= y <= self.button_up_coords[2][1] + self.button_height:
-                        sys.exit()
-            pygame.display.flip()
+        except sqlite3.Error as error:
+            print("Ошибка при работе с SQLite", error)
+
+        return records
 
 
-class Check_snake():
+class Choose_snake():
     def __init__(self):
         global SIZE
         pygame.init()
@@ -180,23 +219,39 @@ class Check_snake():
 
         self.letter_height = int((self.screen_height * 6.52) // 100)
 
-        self.score = 0
-        self.lives = 3
-        self.fps = pygame.time.Clock()
-
     def create_surface(self):
         self.terrarium_surface = pygame.display.set_mode((self.screen_width, self.screen_height))
         pygame.display.set_caption('Математическая змейка')
         self.set_fon()
         self.set_title()
+        self.set_text()
+        self.set_buttons()
+        self.set_informatin()
 
         while True:
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     sys.exit()
                 elif event.type == pygame.MOUSEBUTTONDOWN:
-                    window = MainGame()
-                    window.create_surface()
+                    pos = pygame.mouse.get_pos()
+                    x = pos[0]
+                    y = pos[1]
+                    if self.button_up_coords[0][0] <= x <= self.button_up_coords[0][0] + self.button_width and \
+                            self.button_up_coords[0][1] <= y <= self.button_up_coords[0][1] + self.button_height:
+                        self.set_snake(1)
+                    elif self.button_up_coords[1][0] <= x <= self.button_up_coords[1][0] + self.button_width and \
+                            self.button_up_coords[1][1] <= y <= self.button_up_coords[1][1] + self.button_height:
+                        self.set_snake(2)
+                    elif self.button_up_coords[2][0] <= x <= self.button_up_coords[2][0] + self.button_width and \
+                            self.button_up_coords[2][1] <= y <= self.button_up_coords[2][1] + self.button_height:
+                        self.set_snake(3)
+                    elif self.button_up_coords[3][0] <= x <= self.button_up_coords[3][0] + self.button_width and \
+                            self.button_up_coords[3][1] <= y <= self.button_up_coords[3][1] + self.button_height:
+                        self.set_snake(4)
+                    elif self.button_up_coords[4][0] <= x <= self.button_up_coords[4][0] + self.button_width and \
+                            self.button_up_coords[4][1] <= y <= self.button_up_coords[4][1] + self.button_height:
+                        window = MainGame()
+                        window.create_surface()
             pygame.display.flip()
 
     def set_fon(self):
@@ -212,6 +267,89 @@ class Check_snake():
                                                       int(self.letter_height + ((self.screen_height * 3.26) // 100)),
                                                       x_coord, y_coord, "black")
         self.terrarium_surface.blit(string_rendered, intro_rect)
+
+    def set_buttons(self):
+        text_for_buttons = ["Красный полоз", "Анаконда", "Чёрная мамба", "Уж", "На главную"]
+        w = self.screen_width
+        h = self.screen_height
+        self.button_up_coords = [((w * 2.78 / 100), (h * 21.73 / 100)), ((w * 2.78 / 100), (h * 38.04 / 100)),
+                                 ((w * 2.78 / 100), (h * 54.35 / 100)), ((w * 2.78 / 100), (h * 70.65 / 100)),
+                                 ((w * 55.55 / 100), (h * 86.96 / 100))]
+
+        for i in range(len(self.button_up_coords)):
+            pygame.draw.rect(self.terrarium_surface, self.color,
+                             (self.button_up_coords[i][0], self.button_up_coords[i][1], self.button_width,
+                              self.button_height))
+
+            x_coord = self.button_up_coords[i][0] + self.button_width // 2 - ((len(text_for_buttons[i]) // 2) * \
+                                                                              (self.letter_height // 3))
+            y_coord = self.button_up_coords[i][1] + self.button_height // 2 - self.letter_height // 3
+            string_rendered, intro_rect = set_text_global(text_for_buttons[i], self.letter_height, x_coord, y_coord,
+                                                          "black")
+            self.terrarium_surface.blit(string_rendered, intro_rect)
+
+    def set_text(self):
+        text = "Выберите змейку:"
+        string_rendered, intro_rect = set_text_global(text, self.letter_height * 2, self.screen_width * 2.77 / 100,
+                                                      self.screen_height * 10.87 / 100)
+        self.terrarium_surface.blit(string_rendered, intro_rect)
+
+    def set_informatin(self):
+        text_for_buttons = ["Множители:  время: x2, скорость: x2", "Множители:  время: x3, скорость: x1",
+                            "Множители:  время: x1, скорость: x2", "Множители:  время: x1, скорость: x1"]
+        w = self.screen_width
+        h = self.screen_height
+        self.texts_up_coords = [((w * 51.39 / 100), (h * 21.73 / 100)), ((w * 51.39 / 100), (h * 38.04 / 100)),
+                                ((w * 51.39 / 100), (h * 54.35 / 100)), ((w * 51.39 / 100), (h * 70.65 / 100))]
+
+        for i in range(len(self.texts_up_coords)):
+            pygame.draw.rect(self.terrarium_surface, (0, 0, 0),
+                             (self.texts_up_coords[i][0], self.texts_up_coords[i][1], self.button_width * 1.1,
+                              self.button_height))
+
+            x_coord = self.texts_up_coords[i][0] + self.button_width * 1.1 // 2 - ((len(text_for_buttons[i]) // 2) * \
+                                                                                   (self.letter_height // 3))
+            y_coord = self.texts_up_coords[i][1] + self.button_height // 2 - self.letter_height // 3
+            string_rendered, intro_rect = set_text_global(text_for_buttons[i], self.letter_height, x_coord, y_coord)
+            self.terrarium_surface.blit(string_rendered, intro_rect)
+
+    def get_from_snakes(self, id):
+        fullname = os.path.join('data', 'Permanent_base.db')
+        try:
+            sqlite_connection = sqlite3.connect(fullname)
+            cursor = sqlite_connection.cursor()
+
+            sqlite_select_query = f"""SELECT * from Snakes WHERE id=={id}"""
+            cursor.execute(sqlite_select_query)
+            records = cursor.fetchone()
+            cursor.close()
+            sqlite_connection.close()
+
+        except sqlite3.Error as error:
+            print("Ошибка при работе с SQLite", error)
+
+        return records
+
+    def set_for_last_information(self, id):
+        fullname = os.path.join('data', 'Permanent_base.db')
+        try:
+            sqlite_connection = sqlite3.connect(fullname)
+            cursor = sqlite_connection.cursor()
+
+            sql_update_query = f"""UPDATE Last_information SET Last_sanke_id = {id}"""
+            cursor.execute(sql_update_query)
+            sqlite_connection.commit()
+
+        except sqlite3.Error as error:
+            print("Ошибка при работе с SQLite", error)
+
+    def set_snake(self, id):
+        global CURRENT_SNAKE
+        corteg = self.get_from_snakes(id)
+        CURRENT_SNAKE = (corteg[1], (corteg[2], corteg[3], corteg[4]), corteg[5], corteg[6])
+        self.set_for_last_information(corteg[0])
+        window = MainGame()
+        window.create_surface()
 
 
 class Game_palce():
