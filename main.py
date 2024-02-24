@@ -84,18 +84,6 @@ class MainGame():
 
         self.letter_height = int((self.screen_height * 6.52) // 100)
 
-    def set_text(self):
-        intro_text = ["Описание: При поедании яблока - появляется математическая",
-                      "викторина на время. Конец игры при касании стенок,", "либо при 0 жизней."]
-
-        y_coord = (self.screen_height * 19.56) / 100
-        x_coord = (self.screen_width * 1.39) / 100
-        for line in intro_text:
-            string_rendered, intro_rect = set_text_global(line, self.letter_height, x_coord, y_coord)
-            self.play_surface.blit(string_rendered, intro_rect)
-            y_coord += (self.screen_height * 2.17) / 100
-            y_coord += intro_rect.height
-
     def create_surface(self):
         self.play_surface = pygame.display.set_mode((self.screen_width, self.screen_height))
         pygame.display.set_caption('Математическая змейка')
@@ -103,7 +91,6 @@ class MainGame():
         self.set_fon()
         self.set_title()
         self.set_buttons()
-        # self.set_text()
         self.set_information()
 
         while True:
@@ -120,7 +107,8 @@ class MainGame():
                         window.create_surface()
                     elif self.button_up_coords[1][0] <= x <= self.button_up_coords[1][0] + self.button_width and \
                             self.button_up_coords[1][1] <= y <= self.button_up_coords[1][1] + self.button_height:
-                        return
+                        window = Level_choice()
+                        window.create_surface()
                     elif self.button_up_coords[2][0] <= x <= self.button_up_coords[2][0] + self.button_width and \
                             self.button_up_coords[2][1] <= y <= self.button_up_coords[2][1] + self.button_height:
                         sys.exit()
@@ -269,7 +257,8 @@ class Choose_snake():
         self.terrarium_surface.blit(string_rendered, intro_rect)
 
     def set_buttons(self):
-        text_for_buttons = ["Красный полоз", "Анаконда", "Чёрная мамба", "Уж", "На главную"]
+        snakes = self.get_information_about_snakes()
+        snakes.append(("На главную", self.color[0], self.color[1], self.color[2]))
         w = self.screen_width
         h = self.screen_height
         self.button_up_coords = [((w * 2.78 / 100), (h * 21.73 / 100)), ((w * 2.78 / 100), (h * 38.04 / 100)),
@@ -277,21 +266,25 @@ class Choose_snake():
                                  ((w * 55.55 / 100), (h * 86.96 / 100))]
 
         for i in range(len(self.button_up_coords)):
-            pygame.draw.rect(self.terrarium_surface, self.color,
+            pygame.draw.rect(self.terrarium_surface, (snakes[i][1], snakes[i][2], snakes[i][3]),
                              (self.button_up_coords[i][0], self.button_up_coords[i][1], self.button_width,
                               self.button_height))
 
-            x_coord = self.button_up_coords[i][0] + self.button_width // 2 - ((len(text_for_buttons[i]) // 2) * \
+            x_coord = self.button_up_coords[i][0] + self.button_width // 2 - ((len(snakes[i][0]) // 2) * \
                                                                               (self.letter_height // 3))
             y_coord = self.button_up_coords[i][1] + self.button_height // 2 - self.letter_height // 3
-            string_rendered, intro_rect = set_text_global(text_for_buttons[i], self.letter_height, x_coord, y_coord,
-                                                          "black")
+            if snakes[i][0] == "Черная мамба":
+                string_rendered, intro_rect = set_text_global(snakes[i][0], self.letter_height, x_coord, y_coord,
+                                                              "white")
+            else:
+                string_rendered, intro_rect = set_text_global(snakes[i][0], self.letter_height, x_coord, y_coord,
+                                                              "black")
             self.terrarium_surface.blit(string_rendered, intro_rect)
 
     def set_text(self):
-        text = "Выберите змейку:"
-        string_rendered, intro_rect = set_text_global(text, self.letter_height * 2, self.screen_width * 2.77 / 100,
-                                                      self.screen_height * 10.87 / 100)
+        text = "Выберите змейку (по имени, цвету или способностям):"
+        string_rendered, intro_rect = set_text_global(text, self.letter_height, self.screen_width * 2.77 / 100,
+                                                      self.screen_height * 10.3 / 100)
         self.terrarium_surface.blit(string_rendered, intro_rect)
 
     def set_informatin(self):
@@ -350,6 +343,126 @@ class Choose_snake():
         self.set_for_last_information(corteg[0])
         window = MainGame()
         window.create_surface()
+
+    def get_information_about_snakes(self):
+        fullname = os.path.join('data', 'Permanent_base.db')
+        try:
+            sqlite_connection = sqlite3.connect(fullname)
+            cursor = sqlite_connection.cursor()
+
+            sqlite_select_query = """SELECT Name, Red, Green, Blue from Snakes"""
+            cursor.execute(sqlite_select_query)
+            snakes = cursor.fetchall()
+            cursor.close()
+            sqlite_connection.close()
+
+        except sqlite3.Error as error:
+            print("Ошибка при работе с SQLite", error)
+
+        return snakes
+
+
+class Level_choice():
+    def __init__(self):
+        global SIZE, BUTTON
+        pygame.init()
+        self.screen_width = SIZE[0]
+        self.screen_height = SIZE[1]
+
+        corteg = BUTTON[0]
+        self.color = pygame.Color(corteg[0], corteg[1], corteg[2])
+        self.button_width = (self.screen_width * 41.6) // 100
+        self.button_height = (self.screen_height * 9) // 100
+        self.width_of_frame = BUTTON[1]
+
+        self.letter_height = int((self.screen_height * 6.52) // 100)
+
+    def create_surface(self):
+        self.choice_surface = pygame.display.set_mode((self.screen_width, self.screen_height))
+        pygame.display.set_caption('Математическая змейка')
+
+        self.set_title()
+        self.set_text()
+        self.set_buttons()
+
+        while True:
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    sys.exit()
+                elif event.type == pygame.MOUSEBUTTONDOWN:
+                    pos = pygame.mouse.get_pos()
+                    x = pos[0]
+                    y = pos[1]
+                    if self.button_up_coords[0][0] <= x <= self.button_up_coords[0][0] + self.button_width and \
+                            self.button_up_coords[0][1] <= y <= self.button_up_coords[0][1] + self.button_height:
+                        print(1)
+                    elif self.button_up_coords[1][0] <= x <= self.button_up_coords[1][0] + self.button_width and \
+                            self.button_up_coords[1][1] <= y <= self.button_up_coords[1][1] + self.button_height:
+                        print(2)
+                    elif self.button_up_coords[2][0] <= x <= self.button_up_coords[2][0] + self.button_width and \
+                            self.button_up_coords[2][1] <= y <= self.button_up_coords[2][1] + self.button_height:
+                        print(3)
+                    elif self.button_up_coords[3][0] <= x <= self.button_up_coords[3][0] + self.button_width and \
+                            self.button_up_coords[3][1] <= y <= self.button_up_coords[3][1] + self.button_height:
+                        print(4)
+                    elif self.button_up_coords[4][0] <= x <= self.button_up_coords[4][0] + self.button_width and \
+                            self.button_up_coords[4][1] <= y <= self.button_up_coords[4][1] + self.button_height:
+                        print(5)
+                    elif self.button_up_coords[5][0] <= x <= self.button_up_coords[5][0] + self.button_width and \
+                            self.button_up_coords[5][1] <= y <= self.button_up_coords[5][1] + self.button_height:
+                        window = MainGame()
+                        window.create_surface()
+            pygame.display.flip()
+
+    def set_title(self):
+        text = "Уровни"
+        x_coord = self.screen_width / 2 - ((len(text) / 2) * \
+                                           (((self.letter_height + (self.screen_height * 3.26) / 100) / 3)))
+        y_coord = self.screen_height / 100
+        string_rendered, intro_rect = set_text_global(text,
+                                                      int(self.letter_height + ((self.screen_height * 3.26) // 100)),
+                                                      x_coord, y_coord)
+        self.choice_surface.blit(string_rendered, intro_rect)
+
+    def set_text(self):
+        text = "Выберите уровень:"
+        intro_text = ["Описание: При поедании ", "яблока - появляется математическая", "викторина на время.",
+                      "Конец игры при касании стенок,", "либо при 0 жизней."]
+
+        x_coord = self.screen_width * 2.78 / 100
+        y_coord = self.screen_height * 16.3 / 100
+        string_rendered, intro_rect = set_text_global(text, self.letter_height + int(self.screen_height * 1.08 // 100),
+                                                      x_coord, y_coord)
+        self.choice_surface.blit(string_rendered, intro_rect)
+
+        x_coord = self.screen_width * 47.22 / 100
+        y_coord = self.screen_height * 19.56 / 100
+        for line in intro_text:
+            string_rendered, intro_rect = set_text_global(line, self.letter_height, x_coord, y_coord)
+            self.choice_surface.blit(string_rendered, intro_rect)
+            y_coord += (self.screen_height * 2.17) / 100
+            y_coord += intro_rect.height
+
+    def set_buttons(self):
+        text_for_buttons = ["Первый уровень: easy", "Второй уровень: easy", "Третий уровень: middle",
+                            "Четвёртый уровень: hard", "Пятый уровень: impossible", "На главную"]
+        w = self.screen_width
+        h = self.screen_height
+        self.button_up_coords = [((w * 2.78 / 100), (h * 21.73 / 100)), ((w * 2.78 / 100), (h * 32.61 / 100)),
+                                 ((w * 2.78 / 100), (h * 43.48 / 100)), ((w * 2.78 / 100), (h * 54.35 / 100)),
+                                 ((w * 2.78 / 100), (h * 65.22 / 100)), ((w * 55.55 / 100), (h * 86.96 / 100))]
+
+        for i in range(len(self.button_up_coords)):
+            pygame.draw.rect(self.choice_surface, self.color,
+                             (self.button_up_coords[i][0], self.button_up_coords[i][1], self.button_width,
+                              self.button_height))
+
+            x_coord = self.button_up_coords[i][0] + self.button_width // 2 - ((len(text_for_buttons[i]) // 2) * \
+                                                                              (self.letter_height // 3))
+            y_coord = self.button_up_coords[i][1] + self.button_height // 2 - self.letter_height // 3
+            string_rendered, intro_rect = set_text_global(text_for_buttons[i], self.letter_height, x_coord, y_coord,
+                                                          "black")
+            self.choice_surface.blit(string_rendered, intro_rect)
 
 
 class Game_palce():
