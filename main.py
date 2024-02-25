@@ -6,7 +6,7 @@ import sqlite3
 
 SIZE = (720, 460)
 BUTTON = [(128, 255, 0), 5]
-CURRENT_SNAKE = None
+CURRENT_SNAKE = None  # Пример переменной: ('Уж', (0, 0, 0), 3, 1) - (Name, (R, G, B), Coeff_time, Coeff_speed))
 CURRENT_LEVEL = 1
 SCORE = 0
 
@@ -401,23 +401,23 @@ class Level_choice():
                     if self.button_up_coords[0][0] <= x <= self.button_up_coords[0][0] + self.button_width and \
                             self.button_up_coords[0][1] <= y <= self.button_up_coords[0][1] + self.button_height:
                         CURRENT_LEVEL = 1
-                        self.next()
+                        playing()
                     elif self.button_up_coords[1][0] <= x <= self.button_up_coords[1][0] + self.button_width and \
                             self.button_up_coords[1][1] <= y <= self.button_up_coords[1][1] + self.button_height:
                         CURRENT_LEVEL = 2
-                        self.next()
+                        playing()
                     elif self.button_up_coords[2][0] <= x <= self.button_up_coords[2][0] + self.button_width and \
                             self.button_up_coords[2][1] <= y <= self.button_up_coords[2][1] + self.button_height:
                         CURRENT_LEVEL = 3
-                        self.next()
+                        playing()
                     elif self.button_up_coords[3][0] <= x <= self.button_up_coords[3][0] + self.button_width and \
                             self.button_up_coords[3][1] <= y <= self.button_up_coords[3][1] + self.button_height:
                         CURRENT_LEVEL = 4
-                        self.next()
+                        playing()
                     elif self.button_up_coords[4][0] <= x <= self.button_up_coords[4][0] + self.button_width and \
                             self.button_up_coords[4][1] <= y <= self.button_up_coords[4][1] + self.button_height:
                         CURRENT_LEVEL = 5
-                        self.next()
+                        playing()
                     elif self.button_up_coords[5][0] <= x <= self.button_up_coords[5][0] + self.button_width and \
                             self.button_up_coords[5][1] <= y <= self.button_up_coords[5][1] + self.button_height:
                         window = MainGame()
@@ -472,32 +472,6 @@ class Level_choice():
             y_coord = self.button_up_coords[i][1] + self.button_height // 2 - self.letter_height // 3
             string_rendered, intro_rect = set_text_global(text_for_buttons[i], self.letter_height, x_coord, y_coord)
             self.choice_surface.blit(string_rendered, intro_rect)
-
-    def next(self):
-        game1 = MainGame()
-        snake = Snake()
-        food = Food(game1.screen_width, game1.screen_height)
-
-        game = Game_palce()
-        game.create_surface()
-
-        while True:
-            snake.dir = game.event(snake.change_dir)
-
-            snake.change_dir()
-            snake.head_position()
-            game.score, food.food_pos = snake.snake_body_create(
-                game.score, food.food_pos, game.screen_width, game.screen_height)
-            snake.draw_snake(game.play_surface)
-
-            food.draw_food(game.play_surface)
-
-            snake.check_collision(
-                game.game_over, game.screen_width, game.screen_height)
-
-            game.text_score_and_lives()
-            pygame.display.flip()
-            game.fps.tick(17)
 
 
 class Game_palce():
@@ -643,7 +617,7 @@ class End_wind():
                     y = pos[1]
                     if self.button_up_coords[0][0] <= x <= self.button_up_coords[0][0] + self.button_width and \
                             self.button_up_coords[0][1] <= y <= self.button_up_coords[0][1] + self.button_height:
-                        pass
+                        playing()
                     if self.button_up_coords[1][0] <= x <= self.button_up_coords[1][0] + self.button_width and \
                             self.button_up_coords[1][1] <= y <= self.button_up_coords[1][1] + self.button_height:
                         window = MainGame()
@@ -669,7 +643,6 @@ class End_wind():
 
         except sqlite3.Error as error:
             print("Ошибка при работе с SQLite", error)
-
 
         if SCORE > inf[0][0]:
             fullname = os.path.join('data', 'Permanent_base.db')
@@ -900,6 +873,34 @@ class Food():
                             return 0
 
 
+def playing():
+    global CURRENT_SNAKE
+    game1 = MainGame()
+    snake = Snake()
+    food = Food(game1.screen_width, game1.screen_height)
+
+    game = Game_palce()
+    game.create_surface()
+
+    while True:
+        snake.dir = game.event(snake.change_dir)
+
+        snake.change_dir()
+        snake.head_position()
+        game.score, food.food_pos = snake.snake_body_create(
+            game.score, food.food_pos, game.screen_width, game.screen_height)
+        snake.draw_snake(game.play_surface)
+
+        food.draw_food(game.play_surface)
+
+        snake.check_collision(
+            game.game_over, game.screen_width, game.screen_height)
+
+        game.text_score_and_lives()
+        pygame.display.flip()
+        game.fps.tick(15 * CURRENT_SNAKE[3])
+
+
 game1 = MainGame()
 snake = Snake()
 food = Food(game1.screen_width, game1.screen_height)
@@ -925,4 +926,4 @@ while True:
 
     game.text_score_and_lives()
     pygame.display.flip()
-    game.fps.tick(17)
+    game.fps.tick(15 * CURRENT_SNAKE[3])
