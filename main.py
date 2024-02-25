@@ -4,9 +4,11 @@ import sys
 import os
 import sqlite3
 
-SIZE = (720, 460)
+SIZE = (1300, 700)
 BUTTON = [(128, 255, 0), 5]
 CURRENT_SNAKE = None  # Пример переменной: ('Уж', (0, 0, 0), 3, 1) - (Name, (R, G, B), Coeff_time, Coeff_speed))
+TIME_FOR_QUIZE = 15
+SPEED_OF_SNAKE = 15
 CURRENT_LEVEL = 1
 LIVES = 3
 SCORE = 0
@@ -298,16 +300,16 @@ class Choose_snake():
 
         w = self.screen_width
         h = self.screen_height
-        self.texts_up_coords = [((w * 51.39 / 100), (h * 21.73 / 100)), ((w * 51.39 / 100), (h * 38.04 / 100)),
-                                ((w * 51.39 / 100), (h * 54.35 / 100)), ((w * 51.39 / 100), (h * 70.65 / 100))]
+        general_x = (w * 51.39 / 100)
+        self.texts_up_coords = [(general_x, (h * 21.73 / 100)), (general_x, (h * 38.04 / 100)),
+                                (general_x, (h * 54.35 / 100)), (general_x, (h * 70.65 / 100))]
 
         for i in range(len(self.texts_up_coords)):
             pygame.draw.rect(self.terrarium_surface, (0, 0, 0),
                              (self.texts_up_coords[i][0], self.texts_up_coords[i][1], self.button_width * 1.1,
                               self.button_height))
 
-            x_coord = self.texts_up_coords[i][0] + self.button_width * 1.1 // 2 - ((len(text_for_buttons[i]) // 2) * \
-                                                                                   (self.letter_height // 3))
+            x_coord = general_x
             y_coord = self.texts_up_coords[i][1] + self.button_height // 2 - self.letter_height // 3
             string_rendered, intro_rect = set_text_global(text_for_buttons[i], self.letter_height, x_coord, y_coord)
             self.terrarium_surface.blit(string_rendered, intro_rect)
@@ -663,7 +665,6 @@ class Snake():
         # начальное тело змеи состоит из трех сегментов
         # голова - первый элемент, хвост - последний
         self.snake_body = [[100, 50], [90, 50], [80, 50]]
-        self.snake_color = (32, 178, 170)
         # направление движение змеи, изначально будет вправо
         self.direction = "R"
         self.dir = self.direction
@@ -733,9 +734,11 @@ class Snake():
 
 class Food():
     def __init__(self, screen_width, screen_height):
-        global SIZE
+        global SIZE, BUTTON
         self.screen_width = SIZE[0]
         self.screen_height = SIZE[1]
+        self.color = BUTTON[0]
+        self.width_of_frame = BUTTON[1]
         self.food_pos = [random.randrange(1, screen_width // 10) * 10,
                          random.randrange(1, screen_height // 10) * 10]
 
@@ -775,11 +778,7 @@ class Food():
             b = answer - sp2[index]
         return a, b
 
-    def matematica(self):
-        global CURRENT_SNAKE, LIVES
-        answering = True
-        time = 15 * CURRENT_SNAKE[2]
-
+    def generate_numbers(self):
         first, second = self.generator(), self.generator()
 
         virazh = random.randrange(0, 2)
@@ -789,28 +788,11 @@ class Food():
         else:
             deistv = '-'
             answer = first - second
-
         glush1, glush2 = self.create_glush(answer)
+        return first, second, answer, deistv, glush1, glush2
 
-        main_font = pygame.font.SysFont(None, 24)
+    def create_line(self, answer, glush1, glush2):
         posit = random.randrange(1, 4)
-        text = f'{first} {deistv} {second} = ?'
-        x_coord = 100
-        y_coord = self.screen_height * 21.74 / 100
-        vopr_surf, vopr_rect = set_text_global(text,
-                                               int(self.screen_height * 6 // 100), x_coord, y_coord, "black")
-        game.play_surface.blit(vopr_surf, vopr_rect)
-
-        a = pygame.Rect(120, 130, 70, 20)
-        b = pygame.Rect(120, 170, 70, 20)
-        c = pygame.Rect(120, 210, 70, 20)
-        pygame.draw.rect(
-            game.play_surface, (0, 0, 0), a, 2)
-        pygame.draw.rect(
-            game.play_surface, (0, 0, 0), b, 2)
-        pygame.draw.rect(
-            game.play_surface, (0, 0, 0), c, 2)
-
         line = []
         if posit == 1:
             a_num = answer
@@ -828,30 +810,54 @@ class Food():
         line.append(a_num)
         line.append(b_num)
         line.append(c_num)
+        return line, posit
 
-        otvet1_surf = main_font.render(f'{line[0]}', True, (0, 0, 0))
-        otvet1_rect = vopr_surf.get_rect()
-        otvet1_rect.midtop = (190, 132)
-        game.play_surface.blit(otvet1_surf, otvet1_rect)
+    def matematica(self):
+        global CURRENT_SNAKE, LIVES, TIME_FOR_QUIZE
+        game = Game_palce()
+        game.create_surface()
 
-        otvet2_surf = main_font.render(f'{line[1]}', True, (0, 0, 0))
-        otvet2_rect = vopr_surf.get_rect()
-        otvet2_rect.midtop = (190, 172)
-        game.play_surface.blit(otvet2_surf, otvet2_rect)
+        answering = True
+        time = TIME_FOR_QUIZE * CURRENT_SNAKE[2]
+        first, second, answer, deistv, glush1, glush2 = self.generate_numbers()
 
-        otvet3_surf = main_font.render(f'{line[2]}', True, (0, 0, 0))
-        otvet3_rect = vopr_surf.get_rect()
-        otvet3_rect.midtop = (190, 212)
-        game.play_surface.blit(otvet3_surf, otvet3_rect)
+        text = f'{first} {deistv} {second} = ?'
+        x_coord = self.screen_width * 40 / 100
+        y_coord = self.screen_height * 28.35 / 100
+        vopr_surf, vopr_rect = set_text_global(text, int(self.screen_height * 7 // 100), x_coord, y_coord)
+        game.play_surface.blit(vopr_surf, vopr_rect)
+
+        line, posit = self.create_line(answer, glush1, glush2)
+
+        general_x = self.screen_width * 43.75 / 100
+        button_up_coords = [(general_x, (self.screen_height * 34.78 / 100)),
+                            (general_x, (self.screen_height * 47.82 / 100)),
+                            (general_x, (self.screen_height * 60.87 / 100))]
+        button_width = self.screen_width * 13.16 / 100
+        button_height = self.screen_height * 8.7 / 100
+        for i in range(len(button_up_coords)):
+            coeff = (len(str(line[i])) / 2) * (int(self.screen_height * 7 / 100) / 3)
+            pygame.draw.rect(game.play_surface, self.color,
+                             (button_up_coords[i][0], button_up_coords[i][1], button_width, button_height), 2)
+            ques_surf, ques_rect = set_text_global(str(line[i]), int(self.screen_height * 7 // 100),
+                                                   button_up_coords[i][0] + (button_width / 2) - coeff,
+                                                   button_up_coords[i][1] + self.screen_width * 1.39 / 100)
+            game.play_surface.blit(ques_surf, ques_rect)
+
+        pygame.draw.rect(game.play_surface, self.color,
+                         pygame.Rect(self.screen_width * 35.42 / 100, self.screen_height * 19.57 / 100,
+                                     self.screen_width * 30.55 / 100, self.screen_height * 60.87 / 100),
+                         self.width_of_frame)
 
         while answering:
-            pygame.draw.rect(game.play_surface, (255, 255, 255),
-                             pygame.Rect(55, 70, 200, int(self.screen_height * 5.22 // 100)))
-            pygame.draw.rect(game.play_surface, (0, 0, 0), pygame.Rect(55, 70, 190, 190), 3)
+            x_coord = self.screen_width * 35.42 / 100
+            y_coord = self.screen_height * 21.73 / 100
 
-            x_coord = self.screen_width * 9.72 / 100
-            y_coord = self.screen_height * 17.39 / 100
-            ques_surf, ques_rect = set_text_global(f'Осталось времени: {time}', int(self.screen_height * 5.22 // 100),
+            pygame.draw.rect(game.play_surface, self.color,
+                             pygame.Rect(x_coord, self.screen_height * 19.57 / 100,
+                                         self.screen_width * 30.55 / 100, int(self.screen_height * 7 // 100)))
+
+            ques_surf, ques_rect = set_text_global(f'Осталось времени: {time}', int(self.screen_height * 7 // 100),
                                                    x_coord, y_coord, "black")
             game.play_surface.blit(ques_surf, ques_rect)
 
@@ -890,18 +896,13 @@ class Food():
                             return 0
 
     def end(self):
-        pygame.draw.rect(
-            game.play_surface, (255, 255, 255), pygame.Rect(
-                50, 10, 200, 200))
-        pygame.draw.rect(
-            game.play_surface, (255, 255, 255), pygame.Rect(
-                50, 80, 230, 210))
         pygame.display.flip()
-        game.game_over()
+        win = Game_palce()
+        win.game_over()
 
 
 def playing():
-    global CURRENT_SNAKE
+    global CURRENT_SNAKE, SPEED_OF_SNAKE
     game1 = MainGame()
     snake = Snake()
     food = Food(game1.screen_width, game1.screen_height)
@@ -924,7 +925,7 @@ def playing():
 
         game.text_score_and_lives()
         pygame.display.flip()
-        game.fps.tick(15 * CURRENT_SNAKE[3])
+        game.fps.tick(SPEED_OF_SNAKE * CURRENT_SNAKE[3])
 
 
 game1 = MainGame()
@@ -932,23 +933,3 @@ snake = Snake()
 food = Food(game1.screen_width, game1.screen_height)
 
 game1.create_surface()
-
-game = Game_palce()
-game.create_surface()
-print("прошёл сюда")
-while True:
-    snake.dir = game.event(snake.change_dir)
-
-    snake.change_dir()
-    snake.head_position()
-    food.food_pos = snake.snake_body_create(food.food_pos, game.screen_width, game.screen_height)
-    snake.draw_snake(game.play_surface)
-
-    food.draw_food(game.play_surface)
-
-    snake.check_collision(
-        game.game_over, game.screen_width, game.screen_height)
-
-    game.text_score_and_lives()
-    pygame.display.flip()
-    game.fps.tick(15 * CURRENT_SNAKE[3])
