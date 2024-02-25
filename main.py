@@ -8,6 +8,7 @@ SIZE = (720, 460)
 BUTTON = [(128, 255, 0), 5]
 CURRENT_SNAKE = None  # Пример переменной: ('Уж', (0, 0, 0), 3, 1) - (Name, (R, G, B), Coeff_time, Coeff_speed))
 CURRENT_LEVEL = 1
+LIVES = 3
 SCORE = 0
 
 
@@ -110,6 +111,7 @@ class MainGame():
                             self.button_up_coords[1][1] <= y <= self.button_up_coords[1][1] + self.button_height:
                         window = Level_choice()
                         window.create_surface()
+                        # return
                     elif self.button_up_coords[2][0] <= x <= self.button_up_coords[2][0] + self.button_width and \
                             self.button_up_coords[2][1] <= y <= self.button_up_coords[2][1] + self.button_height:
                         sys.exit()
@@ -514,29 +516,24 @@ class Game_palce():
         return dir
 
     def text_score_and_lives(self, rasp=1):
-        # создание счётчика очков  и счётчика жизней в двух случаях
-        # rasp=1 - счёт и жизни в левом верхнем углу (во время основного геймплея), жизни считаются как обычно
-        # rasp=0 - счёт под надписью Game Over (в конце игры), жизни обнуляются, в левом верхнем углу
-        score_font = pygame.font.SysFont(None, int((self.screen_height * 5.22) // 100))
-        score_surf = score_font.render(
-            'Счёт: {0}'.format(self.score), True, (0, 0, 0))
-        score_rect = score_surf.get_rect()
-        lives_font = pygame.font.SysFont(None, int((self.screen_height * 5.22) / 100))
-        lives_surf = lives_font.render(
-            'Жизней: {0}'.format(self.lives), True, (227, 27, 110))
-        lives_rect = lives_surf.get_rect()
-        lives_rect.midtop = ((self.screen_width * 22.22 / 100), (self.screen_height * 2.17 / 100))
-        if rasp == 1:
-            score_rect.midtop = ((self.screen_width * 11.11 / 100), (self.screen_height * 2.17 / 100))
-        else:
-            score_rect.midtop = ((self.screen_width * 50 / 100), (self.screen_height * 26.09 / 100))
-            lives_surf = lives_font.render(
-                'Жизней: 0', True, (227, 27, 110))
-        # создание текста на экране
-        self.play_surface.blit(lives_surf, lives_rect)
+        global SCORE, LIVES
+        x = (self.screen_width / 100)
+        y = (self.screen_height * 2.17 / 100)
+
+        text_for_score = f'Счёт: {SCORE}'
+        score_surf, score_rect = set_text_global(text_for_score, int((self.screen_height * 5.22) // 100), x, y, "black")
         self.play_surface.blit(score_surf, score_rect)
 
+        x += len(text_for_score) * int((self.screen_height * 5.22) // 100) / 3
+
+        text_for_lives = f'Жизней: {LIVES}'
+        life_surf, life_rect = set_text_global(text_for_lives, int((self.screen_height * 5.22) // 100),
+                                               x, y, (227, 27, 110))
+        self.play_surface.blit(life_surf, life_rect)
+
     def game_over(self):
+        global LIVES
+        LIVES = 3
         window = End_wind()
         window.create_surface()
 
@@ -691,7 +688,8 @@ class Snake():
         elif self.direction == "D":
             self.snake_head_pos[1] += 10
 
-    def snake_body_create(self, score, food_pos, screen_width, screen_height):
+    def snake_body_create(self, food_pos, screen_width, screen_height):
+        global SCORE
         self.snake_body.insert(0, list(self.snake_head_pos))
         # если съели еду
         if (self.snake_head_pos[0] == food_pos[0] and
@@ -699,12 +697,12 @@ class Snake():
             # если съели еду то задаем новое положение еды случайным образом и открываем окно с вопросом
             food_pos = [random.randrange(1, screen_width // 10) * 10,
                         random.randrange(1, screen_height // 10) * 10]
-            score += food.matematica()
+            SCORE += food.matematica()
         else:
             # если не нашли еду, то убираем последний сегмент,
             # если этого не сделать, то змея будет постоянно расти
             self.snake_body.pop()
-        return score, food_pos
+        return food_pos
 
     def draw_snake(self, play_surface):
         global CURRENT_SNAKE
@@ -735,6 +733,9 @@ class Snake():
 
 class Food():
     def __init__(self, screen_width, screen_height):
+        global SIZE
+        self.screen_width = SIZE[0]
+        self.screen_height = SIZE[1]
         self.food_pos = [random.randrange(1, screen_width // 10) * 10,
                          random.randrange(1, screen_height // 10) * 10]
 
@@ -745,102 +746,125 @@ class Food():
                 self.food_pos[0], self.food_pos[1],
                 10, 10))
 
-    def matematica(self):
-        answering = True
-        time = 10
-        first, second = random.randrange(1, 100), random.randrange(1, 100)
-        glush1, glush2 = random.randrange(1, 100), random.randrange(1, 100)
+    def generator(self):
+        global CURRENT_LEVEL
+        if CURRENT_LEVEL == 1:
+            a = random.randrange(1, 9)
+        elif CURRENT_LEVEL == 2:
+            a = random.randrange(10, 99)
+        elif CURRENT_LEVEL == 3:
+            a = random.randrange(100, 999)
+        elif CURRENT_LEVEL == 4:
+            a = random.randrange(1000, 9999)
+        elif CURRENT_LEVEL == 5:
+            a = random.randrange(10000, 99999)
+
+        return a
+
+    def create_glush(self, answer):
+        global CURRENT_LEVEL
+        index = CURRENT_LEVEL - 1
+        sp1 = [1, 1, 10, 101, 1010]
+        sp2 = [2, 2, 20, 202, 2020]
         virazh = random.randrange(0, 2)
-        answer = 0
-        posit = random.randrange(1, 4)
-        deistv = None
+        if virazh == 0:
+            a = answer - sp1[index]
+            b = answer + sp2[index]
+        else:
+            a = answer + sp1[index]
+            b = answer - sp2[index]
+        return a, b
+
+    def matematica(self):
+        global CURRENT_SNAKE, LIVES
+        answering = True
+        time = 15 * CURRENT_SNAKE[2]
+
+        first, second = self.generator(), self.generator()
+
+        virazh = random.randrange(0, 2)
         if virazh == 0:
             deistv = '+'
             answer = first + second
         else:
             deistv = '-'
             answer = first - second
-        main_font = pygame.font.SysFont(None, 24)
-        while answering:
-            pygame.draw.rect(
-                game.play_surface, (255, 255, 255), pygame.Rect(
-                    50, 80, 200, 200))
-            pygame.draw.rect(
-                game.play_surface, (0, 0, 0), pygame.Rect(
-                    55, 70, 190, 190), 3)
-            ques_surf = main_font.render(
-                'Осталось времени: {0}'.format(time), True, (0, 0, 0))
-            ques_rect = ques_surf.get_rect()
-            ques_rect.midtop = (150, 80)
-            vopr_surf = main_font.render(f'{first} {deistv} {second} = ?', True, (0, 0, 0))
-            vopr_rect = vopr_surf.get_rect()
-            vopr_rect.midtop = (150, 100)
-            game.play_surface.blit(ques_surf, ques_rect)
-            game.play_surface.blit(vopr_surf, vopr_rect)
-            a = pygame.Rect(120, 130, 60, 20)
-            b = pygame.Rect(120, 170, 60, 20)
-            c = pygame.Rect(120, 210, 60, 20)
-            pygame.draw.rect(
-                game.play_surface, (0, 0, 0), a, 2)
-            pygame.draw.rect(
-                game.play_surface, (0, 0, 0), b, 2)
-            pygame.draw.rect(
-                game.play_surface, (0, 0, 0), c, 2)
-            if posit == 1:
-                otvet1_surf = main_font.render(f'{answer}', True, (0, 0, 0))
-                otvet1_rect = vopr_surf.get_rect()
-                otvet1_rect.midtop = (180, 132)
-                game.play_surface.blit(otvet1_surf, otvet1_rect)
-                otvet2_surf = main_font.render(f'{glush1}', True, (0, 0, 0))
-                otvet2_rect = vopr_surf.get_rect()
-                otvet2_rect.midtop = (180, 172)
-                game.play_surface.blit(otvet2_surf, otvet2_rect)
-                otvet3_surf = main_font.render(f'{glush2}', True, (0, 0, 0))
-                otvet3_rect = vopr_surf.get_rect()
-                otvet3_rect.midtop = (180, 212)
-                game.play_surface.blit(otvet3_surf, otvet3_rect)
 
-            elif posit == 2:
-                otvet1_surf = main_font.render(f'{glush1}', True, (0, 0, 0))
-                otvet1_rect = vopr_surf.get_rect()
-                otvet1_rect.midtop = (180, 132)
-                game.play_surface.blit(otvet1_surf, otvet1_rect)
-                otvet2_surf = main_font.render(f'{answer}', True, (0, 0, 0))
-                otvet2_rect = vopr_surf.get_rect()
-                otvet2_rect.midtop = (180, 172)
-                game.play_surface.blit(otvet2_surf, otvet2_rect)
-                otvet3_surf = main_font.render(f'{glush2}', True, (0, 0, 0))
-                otvet3_rect = vopr_surf.get_rect()
-                otvet3_rect.midtop = (180, 212)
-                game.play_surface.blit(otvet3_surf, otvet3_rect)
-            else:
-                otvet1_surf = main_font.render(f'{glush2}', True, (0, 0, 0))
-                otvet1_rect = vopr_surf.get_rect()
-                otvet1_rect.midtop = (180, 132)
-                game.play_surface.blit(otvet1_surf, otvet1_rect)
-                otvet2_surf = main_font.render(f'{glush1}', True, (0, 0, 0))
-                otvet2_rect = vopr_surf.get_rect()
-                otvet2_rect.midtop = (180, 172)
-                game.play_surface.blit(otvet2_surf, otvet2_rect)
-                otvet3_surf = main_font.render(f'{answer}', True, (0, 0, 0))
-                otvet3_rect = vopr_surf.get_rect()
-                otvet3_rect.midtop = (180, 212)
-                game.play_surface.blit(otvet3_surf, otvet3_rect)
+        glush1, glush2 = self.create_glush(answer)
+
+        main_font = pygame.font.SysFont(None, 24)
+        posit = random.randrange(1, 4)
+        text = f'{first} {deistv} {second} = ?'
+        x_coord = 100
+        y_coord = self.screen_height * 21.74 / 100
+        vopr_surf, vopr_rect = set_text_global(text,
+                                               int(self.screen_height * 6 // 100), x_coord, y_coord, "black")
+        game.play_surface.blit(vopr_surf, vopr_rect)
+
+        a = pygame.Rect(120, 130, 70, 20)
+        b = pygame.Rect(120, 170, 70, 20)
+        c = pygame.Rect(120, 210, 70, 20)
+        pygame.draw.rect(
+            game.play_surface, (0, 0, 0), a, 2)
+        pygame.draw.rect(
+            game.play_surface, (0, 0, 0), b, 2)
+        pygame.draw.rect(
+            game.play_surface, (0, 0, 0), c, 2)
+
+        line = []
+        if posit == 1:
+            a_num = answer
+            b_num = glush1
+            c_num = glush2
+        elif posit == 2:
+            a_num = glush2
+            b_num = answer
+            c_num = glush1
+        else:
+            a_num = glush1
+            b_num = glush2
+            c_num = answer
+
+        line.append(a_num)
+        line.append(b_num)
+        line.append(c_num)
+
+        otvet1_surf = main_font.render(f'{line[0]}', True, (0, 0, 0))
+        otvet1_rect = vopr_surf.get_rect()
+        otvet1_rect.midtop = (190, 132)
+        game.play_surface.blit(otvet1_surf, otvet1_rect)
+
+        otvet2_surf = main_font.render(f'{line[1]}', True, (0, 0, 0))
+        otvet2_rect = vopr_surf.get_rect()
+        otvet2_rect.midtop = (190, 172)
+        game.play_surface.blit(otvet2_surf, otvet2_rect)
+
+        otvet3_surf = main_font.render(f'{line[2]}', True, (0, 0, 0))
+        otvet3_rect = vopr_surf.get_rect()
+        otvet3_rect.midtop = (190, 212)
+        game.play_surface.blit(otvet3_surf, otvet3_rect)
+
+        while answering:
+            pygame.draw.rect(game.play_surface, (255, 255, 255),
+                             pygame.Rect(55, 70, 200, int(self.screen_height * 5.22 // 100)))
+            pygame.draw.rect(game.play_surface, (0, 0, 0), pygame.Rect(55, 70, 190, 190), 3)
+
+            x_coord = self.screen_width * 9.72 / 100
+            y_coord = self.screen_height * 17.39 / 100
+            ques_surf, ques_rect = set_text_global(f'Осталось времени: {time}', int(self.screen_height * 5.22 // 100),
+                                                   x_coord, y_coord, "black")
+            game.play_surface.blit(ques_surf, ques_rect)
+
             pygame.display.flip()
             game.fps.tick(1)
+
             time -= 1
             if time == 0:
-                game.lives -= 1
-                if game.lives == 0:
-                    pygame.draw.rect(
-                        game.play_surface, (255, 255, 255), pygame.Rect(
-                            50, 10, 200, 200))
-                    pygame.draw.rect(
-                        game.play_surface, (255, 255, 255), pygame.Rect(
-                            50, 80, 230, 210))
-                    pygame.display.flip()
-                    game.game_over()
+                LIVES -= 1
+                if LIVES == 0:
+                    self.end()
                 return 0
+
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     sys.exit()
@@ -860,17 +884,20 @@ class Food():
                             return 1
                         else:
                             answering = False
-                            game.lives -= 1
-                            if game.lives == 0:
-                                pygame.draw.rect(
-                                    game.play_surface, (255, 255, 255), pygame.Rect(
-                                        50, 10, 200, 200))
-                                pygame.draw.rect(
-                                    game.play_surface, (255, 255, 255), pygame.Rect(
-                                        50, 80, 230, 210))
-                                pygame.display.flip()
-                                game.game_over()
+                            LIVES -= 1
+                            if LIVES == 0:
+                                self.end()
                             return 0
+
+    def end(self):
+        pygame.draw.rect(
+            game.play_surface, (255, 255, 255), pygame.Rect(
+                50, 10, 200, 200))
+        pygame.draw.rect(
+            game.play_surface, (255, 255, 255), pygame.Rect(
+                50, 80, 230, 210))
+        pygame.display.flip()
+        game.game_over()
 
 
 def playing():
@@ -887,8 +914,7 @@ def playing():
 
         snake.change_dir()
         snake.head_position()
-        game.score, food.food_pos = snake.snake_body_create(
-            game.score, food.food_pos, game.screen_width, game.screen_height)
+        food.food_pos = snake.snake_body_create(food.food_pos, game.screen_width, game.screen_height)
         snake.draw_snake(game.play_surface)
 
         food.draw_food(game.play_surface)
@@ -909,14 +935,13 @@ game1.create_surface()
 
 game = Game_palce()
 game.create_surface()
-
+print("прошёл сюда")
 while True:
     snake.dir = game.event(snake.change_dir)
 
     snake.change_dir()
     snake.head_position()
-    game.score, food.food_pos = snake.snake_body_create(
-        game.score, food.food_pos, game.screen_width, game.screen_height)
+    food.food_pos = snake.snake_body_create(food.food_pos, game.screen_width, game.screen_height)
     snake.draw_snake(game.play_surface)
 
     food.draw_food(game.play_surface)
