@@ -4,7 +4,7 @@ import sys
 import os
 import sqlite3
 
-SIZE = (1300, 700)
+SIZE = (720, 460)
 BUTTON = [(128, 255, 0), 5]
 CURRENT_SNAKE = None  # Пример переменной: ('Уж', (0, 0, 0), 3, 1) - (Name, (R, G, B), Coeff_time, Coeff_speed))
 TIME_FOR_QUIZE = 15
@@ -517,6 +517,16 @@ class Game_palce():
         # возвращение направления змейки
         return dir
 
+    def wait_for_click(self):
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                sys.exit()
+            elif event.type == pygame.KEYDOWN or event.type == pygame.MOUSEBUTTONDOWN:
+                if event.key == pygame.K_ESCAPE or event.key == pygame.K_BACKSPACE:
+                    sys.exit()
+                else:
+                   return
+
     def text_score_and_lives(self, rasp=1):
         global SCORE, LIVES
         x = (self.screen_width / 100)
@@ -690,7 +700,7 @@ class Snake():
             self.snake_head_pos[1] += 10
 
     def snake_body_create(self, food_pos, screen_width, screen_height):
-        global SCORE
+        global SCORE, LIVES
         self.snake_body.insert(0, list(self.snake_head_pos))
         # если съели еду
         if (self.snake_head_pos[0] == food_pos[0] and
@@ -698,7 +708,13 @@ class Snake():
             # если съели еду то задаем новое положение еды случайным образом и открываем окно с вопросом
             food_pos = [random.randrange(1, screen_width // 10) * 10,
                         random.randrange(1, screen_height // 10) * 10]
-            SCORE += food.matematica()
+            num = food.matematica()
+            SCORE += num
+            if num == 0:
+                LIVES -= 1
+            if LIVES == 0:
+                win = Game_palce()
+                win.game_over()
         else:
             # если не нашли еду, то убираем последний сегмент,
             # если этого не сделать, то змея будет постоянно расти
@@ -830,18 +846,19 @@ class Food():
         line, posit = self.create_line(answer, glush1, glush2)
 
         general_x = self.screen_width * 43.75 / 100
-        button_up_coords = [(general_x, (self.screen_height * 34.78 / 100)),
-                            (general_x, (self.screen_height * 47.82 / 100)),
-                            (general_x, (self.screen_height * 60.87 / 100))]
-        button_width = self.screen_width * 13.16 / 100
-        button_height = self.screen_height * 8.7 / 100
-        for i in range(len(button_up_coords)):
+        self.button_up_coords = [(general_x, (self.screen_height * 34.78 / 100)),
+                                 (general_x, (self.screen_height * 47.82 / 100)),
+                                 (general_x, (self.screen_height * 60.87 / 100))]
+        self.button_width = self.screen_width * 13.16 / 100
+        self.button_height = self.screen_height * 8.7 / 100
+        for i in range(len(self.button_up_coords)):
             coeff = (len(str(line[i])) / 2) * (int(self.screen_height * 7 / 100) / 3)
             pygame.draw.rect(game.play_surface, self.color,
-                             (button_up_coords[i][0], button_up_coords[i][1], button_width, button_height), 2)
+                             (self.button_up_coords[i][0], self.button_up_coords[i][1], self.button_width,
+                              self.button_height), 2)
             ques_surf, ques_rect = set_text_global(str(line[i]), int(self.screen_height * 7 // 100),
-                                                   button_up_coords[i][0] + (button_width / 2) - coeff,
-                                                   button_up_coords[i][1] + self.screen_width * 1.39 / 100)
+                                                   self.button_up_coords[i][0] + (self.button_width / 2) - coeff,
+                                                   self.button_up_coords[i][1] + self.screen_width * 1.39 / 100)
             game.play_surface.blit(ques_surf, ques_rect)
 
         pygame.draw.rect(game.play_surface, self.color,
@@ -866,7 +883,6 @@ class Food():
 
             time -= 1
             if time == 0:
-                LIVES -= 1
                 if LIVES == 0:
                     self.end()
                 return 0
@@ -878,22 +894,24 @@ class Food():
                     if event.key == pygame.K_ESCAPE or event.key == pygame.K_BACKSPACE:
                         sys.exit()
                 elif event.type == pygame.MOUSEBUTTONDOWN:
-                    if event.button == 1:
-                        if posit == 1 and a.collidepoint(event.pos):
-                            answering = False
-                            return 1
-                        elif posit == 2 and b.collidepoint(event.pos):
-                            answering = False
-                            return 1
-                        elif posit == 3 and c.collidepoint(event.pos):
-                            answering = False
-                            return 1
-                        else:
-                            answering = False
-                            LIVES -= 1
-                            if LIVES == 0:
-                                self.end()
-                            return 0
+                    pos = pygame.mouse.get_pos()
+                    x = pos[0]
+                    y = pos[1]
+                    if self.button_up_coords[0][0] <= x <= self.button_up_coords[0][0] + self.button_width and \
+                            self.button_up_coords[0][1] <= y <= self.button_up_coords[0][1] + self.button_height:
+                        return self.compare_answer(posit, 1)
+                    elif self.button_up_coords[1][0] <= x <= self.button_up_coords[1][0] + self.button_width and \
+                            self.button_up_coords[1][1] <= y <= self.button_up_coords[1][1] + self.button_height:
+                        return self.compare_answer(posit, 2)
+                    elif self.button_up_coords[2][0] <= x <= self.button_up_coords[2][0] + self.button_width and \
+                            self.button_up_coords[2][1] <= y <= self.button_up_coords[2][1] + self.button_height:
+                        return self.compare_answer(posit, 3)
+
+    def compare_answer(self, posit, but):
+        if but == posit:
+            return 1
+        else:
+            return 0
 
     def end(self):
         pygame.display.flip()
