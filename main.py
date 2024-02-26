@@ -1,3 +1,5 @@
+import time
+
 import pygame
 import random
 import sys
@@ -12,6 +14,7 @@ SPEED_OF_SNAKE = 15  # Стандартное время викторины (б�
 CURRENT_LEVEL = None  # текущий уровень type==int
 LIVES = 3  # количество жизней в игре
 SCORE = 0  # счётчик результатов
+WAIT = False
 
 
 # установка змейки в соответствии с последним вобором игрока
@@ -75,7 +78,6 @@ def set_text_global(text, letter_height, x_coord, y_coord, color="white"):
     intro_rect.y = y_coord
     return string_rendered, intro_rect
 
-
 # создание стартового окна
 class MainGame():
     # инициализация окна, формирование необходимых данных из глобальных перемнных
@@ -109,20 +111,21 @@ class MainGame():
                 if event.type == pygame.QUIT:
                     sys.exit()
                 elif event.type == pygame.MOUSEBUTTONDOWN:
-                    pos = pygame.mouse.get_pos()
-                    x = pos[0]
-                    y = pos[1]
-                    if self.button_up_coords[0][0] <= x <= self.button_up_coords[0][0] + self.button_width and \
-                            self.button_up_coords[0][1] <= y <= self.button_up_coords[0][1] + self.button_height:
-                        window = Choose_snake()
-                        window.create_surface() # переход на окно выбора змейки
-                    elif self.button_up_coords[1][0] <= x <= self.button_up_coords[1][0] + self.button_width and \
-                            self.button_up_coords[1][1] <= y <= self.button_up_coords[1][1] + self.button_height:
-                        window = Level_choice()
-                        window.create_surface() # переход на окно выбора уровня
-                    elif self.button_up_coords[2][0] <= x <= self.button_up_coords[2][0] + self.button_width and \
-                            self.button_up_coords[2][1] <= y <= self.button_up_coords[2][1] + self.button_height:
-                        sys.exit() # выход из игры
+                    if event.button == 1 or event.button == 2:
+                        pos = pygame.mouse.get_pos()
+                        x = pos[0]
+                        y = pos[1]
+                        if self.button_up_coords[0][0] <= x <= self.button_up_coords[0][0] + self.button_width and \
+                                self.button_up_coords[0][1] <= y <= self.button_up_coords[0][1] + self.button_height:
+                            window = Choose_snake()
+                            window.create_surface() # переход на окно выбора змейки
+                        elif self.button_up_coords[1][0] <= x <= self.button_up_coords[1][0] + self.button_width and \
+                                self.button_up_coords[1][1] <= y <= self.button_up_coords[1][1] + self.button_height:
+                            window = Level_choice()
+                            window.create_surface() # переход на окно выбора уровня
+                        elif self.button_up_coords[2][0] <= x <= self.button_up_coords[2][0] + self.button_width and \
+                                self.button_up_coords[2][1] <= y <= self.button_up_coords[2][1] + self.button_height:
+                            sys.exit() # выход из игры
             pygame.display.flip()
 
     # установка фонового изображения
@@ -240,25 +243,26 @@ class Choose_snake():
                 if event.type == pygame.QUIT:
                     sys.exit()
                 elif event.type == pygame.MOUSEBUTTONDOWN:
-                    pos = pygame.mouse.get_pos()
-                    x = pos[0]
-                    y = pos[1]
-                    if self.button_up_coords[0][0] <= x <= self.button_up_coords[0][0] + self.button_width and \
-                            self.button_up_coords[0][1] <= y <= self.button_up_coords[0][1] + self.button_height:
-                        self.set_snake(1) # обновление текущей змейки в глобальных переменных по id выбраной змейки
-                    elif self.button_up_coords[1][0] <= x <= self.button_up_coords[1][0] + self.button_width and \
-                            self.button_up_coords[1][1] <= y <= self.button_up_coords[1][1] + self.button_height:
-                        self.set_snake(2) # обновление текущей змейки в глобальных переменных по id выбраной змейки
-                    elif self.button_up_coords[2][0] <= x <= self.button_up_coords[2][0] + self.button_width and \
-                            self.button_up_coords[2][1] <= y <= self.button_up_coords[2][1] + self.button_height:
-                        self.set_snake(3) # обновление текущей змейки в глобальных переменных по id выбраной змейки
-                    elif self.button_up_coords[3][0] <= x <= self.button_up_coords[3][0] + self.button_width and \
-                            self.button_up_coords[3][1] <= y <= self.button_up_coords[3][1] + self.button_height:
-                        self.set_snake(4) # обновление текущей змейки в глобальных переменных по id выбраной змейки
-                    elif self.button_up_coords[4][0] <= x <= self.button_up_coords[4][0] + self.button_width and \
-                            self.button_up_coords[4][1] <= y <= self.button_up_coords[4][1] + self.button_height:
-                        window = MainGame()
-                        window.create_surface() # переход на стартовое окно
+                    if event.button == 1 or event.button == 2:
+                        pos = pygame.mouse.get_pos()
+                        x = pos[0]
+                        y = pos[1]
+                        if self.button_up_coords[0][0] <= x <= self.button_up_coords[0][0] + self.button_width and \
+                                self.button_up_coords[0][1] <= y <= self.button_up_coords[0][1] + self.button_height:
+                            self.set_snake(1) # обновление текущей змейки в глобальных переменных по id выбраной змейки
+                        elif self.button_up_coords[1][0] <= x <= self.button_up_coords[1][0] + self.button_width and \
+                                self.button_up_coords[1][1] <= y <= self.button_up_coords[1][1] + self.button_height:
+                            self.set_snake(2) # обновление текущей змейки в глобальных переменных по id выбраной змейки
+                        elif self.button_up_coords[2][0] <= x <= self.button_up_coords[2][0] + self.button_width and \
+                                self.button_up_coords[2][1] <= y <= self.button_up_coords[2][1] + self.button_height:
+                            self.set_snake(3) # обновление текущей змейки в глобальных переменных по id выбраной змейки
+                        elif self.button_up_coords[3][0] <= x <= self.button_up_coords[3][0] + self.button_width and \
+                                self.button_up_coords[3][1] <= y <= self.button_up_coords[3][1] + self.button_height:
+                            self.set_snake(4) # обновление текущей змейки в глобальных переменных по id выбраной змейки
+                        elif self.button_up_coords[4][0] <= x <= self.button_up_coords[4][0] + self.button_width and \
+                                self.button_up_coords[4][1] <= y <= self.button_up_coords[4][1] + self.button_height:
+                            window = MainGame()
+                            window.create_surface() # переход на стартовое окно
             pygame.display.flip()
 
     # установка фонового изображения
@@ -426,33 +430,34 @@ class Level_choice():
                 if event.type == pygame.QUIT:
                     sys.exit()
                 elif event.type == pygame.MOUSEBUTTONDOWN:
-                    pos = pygame.mouse.get_pos()
-                    x = pos[0]
-                    y = pos[1]
-                    if self.button_up_coords[0][0] <= x <= self.button_up_coords[0][0] + self.button_width and \
-                            self.button_up_coords[0][1] <= y <= self.button_up_coords[0][1] + self.button_height:
-                        CURRENT_LEVEL = 1
-                        playing() # присвоение глобального текущего уровня. запуск игрового процесса
-                    elif self.button_up_coords[1][0] <= x <= self.button_up_coords[1][0] + self.button_width and \
-                            self.button_up_coords[1][1] <= y <= self.button_up_coords[1][1] + self.button_height:
-                        CURRENT_LEVEL = 2
-                        playing() # присвоение глобального текущего уровня. запуск игрового процесса
-                    elif self.button_up_coords[2][0] <= x <= self.button_up_coords[2][0] + self.button_width and \
-                            self.button_up_coords[2][1] <= y <= self.button_up_coords[2][1] + self.button_height:
-                        CURRENT_LEVEL = 3
-                        playing() # присвоение глобального текущего уровня. запуск игрового процесса
-                    elif self.button_up_coords[3][0] <= x <= self.button_up_coords[3][0] + self.button_width and \
-                            self.button_up_coords[3][1] <= y <= self.button_up_coords[3][1] + self.button_height:
-                        CURRENT_LEVEL = 4
-                        playing() # присвоение глобального текущего уровня. запуск игрового процесса
-                    elif self.button_up_coords[4][0] <= x <= self.button_up_coords[4][0] + self.button_width and \
-                            self.button_up_coords[4][1] <= y <= self.button_up_coords[4][1] + self.button_height:
-                        CURRENT_LEVEL = 5
-                        playing() # присвоение глобального текущего уровня. запуск игрового процесса
-                    elif self.button_up_coords[5][0] <= x <= self.button_up_coords[5][0] + self.button_width and \
-                            self.button_up_coords[5][1] <= y <= self.button_up_coords[5][1] + self.button_height:
-                        window = MainGame()
-                        window.create_surface() # возврат на стартовое окно
+                    if event.button == 1 or event.button == 2:
+                        pos = pygame.mouse.get_pos()
+                        x = pos[0]
+                        y = pos[1]
+                        if self.button_up_coords[0][0] <= x <= self.button_up_coords[0][0] + self.button_width and \
+                                self.button_up_coords[0][1] <= y <= self.button_up_coords[0][1] + self.button_height:
+                            CURRENT_LEVEL = 1
+                            playing() # присвоение глобального текущего уровня. запуск игрового процесса
+                        elif self.button_up_coords[1][0] <= x <= self.button_up_coords[1][0] + self.button_width and \
+                                self.button_up_coords[1][1] <= y <= self.button_up_coords[1][1] + self.button_height:
+                            CURRENT_LEVEL = 2
+                            playing() # присвоение глобального текущего уровня. запуск игрового процесса
+                        elif self.button_up_coords[2][0] <= x <= self.button_up_coords[2][0] + self.button_width and \
+                                self.button_up_coords[2][1] <= y <= self.button_up_coords[2][1] + self.button_height:
+                            CURRENT_LEVEL = 3
+                            playing() # присвоение глобального текущего уровня. запуск игрового процесса
+                        elif self.button_up_coords[3][0] <= x <= self.button_up_coords[3][0] + self.button_width and \
+                                self.button_up_coords[3][1] <= y <= self.button_up_coords[3][1] + self.button_height:
+                            CURRENT_LEVEL = 4
+                            playing() # присвоение глобального текущего уровня. запуск игрового процесса
+                        elif self.button_up_coords[4][0] <= x <= self.button_up_coords[4][0] + self.button_width and \
+                                self.button_up_coords[4][1] <= y <= self.button_up_coords[4][1] + self.button_height:
+                            CURRENT_LEVEL = 5
+                            playing() # присвоение глобального текущего уровня. запуск игрового процесса
+                        elif self.button_up_coords[5][0] <= x <= self.button_up_coords[5][0] + self.button_width and \
+                                self.button_up_coords[5][1] <= y <= self.button_up_coords[5][1] + self.button_height:
+                            window = MainGame()
+                            window.create_surface() # возврат на стартовое окно
             pygame.display.flip()
 
     #установка текстового заголовка
@@ -558,13 +563,16 @@ class Game_palce():
                     return
 
     def text_score_and_lives(self, rasp=1):
-        global SCORE, LIVES
+        global SCORE, LIVES, SIZE
         x = (self.screen_width / 100)
         y = (self.screen_height * 2.17 / 100)
 
         text_for_score = f'Счёт: {SCORE}'
         score_surf, score_rect = set_text_global(text_for_score, int((self.screen_height * 5.22) // 100), x, y, "black")
         self.play_surface.blit(score_surf, score_rect)
+
+        pygame.draw.rect(self.play_surface, (0, 0, 0),
+                         (-7, -7, SIZE[0] + 12, 50), 3)
 
         x += len(text_for_score) * int((self.screen_height * 5.22) // 100) / 3
 
@@ -651,16 +659,17 @@ class End_wind():
                 if event.type == pygame.QUIT:
                     sys.exit()
                 elif event.type == pygame.MOUSEBUTTONDOWN:
-                    pos = pygame.mouse.get_pos()
-                    x = pos[0]
-                    y = pos[1]
-                    if self.button_up_coords[0][0] <= x <= self.button_up_coords[0][0] + self.button_width and \
-                            self.button_up_coords[0][1] <= y <= self.button_up_coords[0][1] + self.button_height:
-                        playing()
-                    if self.button_up_coords[1][0] <= x <= self.button_up_coords[1][0] + self.button_width and \
-                            self.button_up_coords[1][1] <= y <= self.button_up_coords[1][1] + self.button_height:
-                        window = MainGame()
-                        window.create_surface()
+                    if event.button == 1 or event.button == 2:
+                        pos = pygame.mouse.get_pos()
+                        x = pos[0]
+                        y = pos[1]
+                        if self.button_up_coords[0][0] <= x <= self.button_up_coords[0][0] + self.button_width and \
+                                self.button_up_coords[0][1] <= y <= self.button_up_coords[0][1] + self.button_height:
+                            playing()
+                        if self.button_up_coords[1][0] <= x <= self.button_up_coords[1][0] + self.button_width and \
+                                self.button_up_coords[1][1] <= y <= self.button_up_coords[1][1] + self.button_height:
+                            window = MainGame()
+                            window.create_surface()
                 elif event.type == pygame.KEYDOWN:
                     if event.key == pygame.K_ESCAPE or event.key == pygame.K_BACKSPACE:
                         sys.exit()
@@ -701,10 +710,10 @@ class End_wind():
 class Snake():
     def __init__(self):
         # важные переменные - позиция головы змеи и его тела
-        self.snake_head_pos = [100, 50]  # [x, y]
+        self.snake_head_pos = [100, 80]  # [x, y]
         # начальное тело змеи состоит из трех сегментов
         # голова - первый элемент, хвост - последний
-        self.snake_body = [[100, 50], [90, 50], [80, 50]]
+        self.snake_body = [[100, 80], [90, 80], [80, 80]]
         # направление движение змеи, изначально будет вправо
         self.direction = "R"
         self.dir = self.direction
@@ -731,13 +740,14 @@ class Snake():
 
     def snake_body_create(self, food_pos, screen_width, screen_height):
         global SCORE, LIVES
+
         self.snake_body.insert(0, list(self.snake_head_pos))
         # если съели еду
         if (self.snake_head_pos[0] == food_pos[0] and
                 self.snake_head_pos[1] == food_pos[1]):
             # если съели еду то задаем новое положение еды случайным образом и открываем окно с вопросом
-            food_pos = [random.randrange(1, screen_width // 10) * 10,
-                        random.randrange(1, screen_height // 10) * 10]
+            food_pos = [random.randrange(0, screen_width // 10) * 10,
+                        random.randrange(5, screen_height // 10) * 10]
             num = food.matematica()
             SCORE += num
             if num == 0:
@@ -768,7 +778,7 @@ class Snake():
                 self.snake_head_pos[0] > screen_width - 10
                 or self.snake_head_pos[0] < 0,
                 self.snake_head_pos[1] > screen_height - 10
-                or self.snake_head_pos[1] < 0
+                or self.snake_head_pos[1] < 40
         )):
             game_over()
         for block in self.snake_body[1:]:
@@ -786,7 +796,7 @@ class Food():
         self.color = BUTTON[0]
         self.width_of_frame = BUTTON[1]
         self.food_pos = [random.randrange(1, screen_width // 10) * 10,
-                         random.randrange(1, screen_height // 10) * 10]
+                         random.randrange(5, screen_height // 10) * 10]
 
     def draw_food(self, play_surface):
         # отображение еды на экране
@@ -859,7 +869,7 @@ class Food():
         return line, posit
 
     def matematica(self):
-        global CURRENT_SNAKE, LIVES, TIME_FOR_QUIZE
+        global CURRENT_SNAKE, LIVES, TIME_FOR_QUIZE, WAIT
         game = Game_palce()
         game.create_surface()
 
@@ -868,7 +878,7 @@ class Food():
         first, second, answer, deistv, glush1, glush2 = self.generate_numbers()
 
         text = f'{first} {deistv} {second} = ?'
-        x_coord = self.screen_width * 40 / 100
+        x_coord = self.screen_width * 43.5 / 100
         y_coord = self.screen_height * 28.35 / 100
         vopr_surf, vopr_rect = set_text_global(text, int(self.screen_height * 7 // 100), x_coord, y_coord)
         game.play_surface.blit(vopr_surf, vopr_rect)
@@ -924,18 +934,22 @@ class Food():
                     if event.key == pygame.K_ESCAPE or event.key == pygame.K_BACKSPACE:
                         sys.exit()
                 elif event.type == pygame.MOUSEBUTTONDOWN:
-                    pos = pygame.mouse.get_pos()
-                    x = pos[0]
-                    y = pos[1]
-                    if self.button_up_coords[0][0] <= x <= self.button_up_coords[0][0] + self.button_width and \
-                            self.button_up_coords[0][1] <= y <= self.button_up_coords[0][1] + self.button_height:
-                        return self.compare_answer(posit, 1)
-                    elif self.button_up_coords[1][0] <= x <= self.button_up_coords[1][0] + self.button_width and \
-                            self.button_up_coords[1][1] <= y <= self.button_up_coords[1][1] + self.button_height:
-                        return self.compare_answer(posit, 2)
-                    elif self.button_up_coords[2][0] <= x <= self.button_up_coords[2][0] + self.button_width and \
-                            self.button_up_coords[2][1] <= y <= self.button_up_coords[2][1] + self.button_height:
-                        return self.compare_answer(posit, 3)
+                    if event.button == 1 or event.button == 2:
+                        pos = pygame.mouse.get_pos()
+                        x = pos[0]
+                        y = pos[1]
+                        if self.button_up_coords[0][0] <= x <= self.button_up_coords[0][0] + self.button_width and \
+                                self.button_up_coords[0][1] <= y <= self.button_up_coords[0][1] + self.button_height:
+                            WAIT = True
+                            return self.compare_answer(posit, 1)
+                        elif self.button_up_coords[1][0] <= x <= self.button_up_coords[1][0] + self.button_width and \
+                                self.button_up_coords[1][1] <= y <= self.button_up_coords[1][1] + self.button_height:
+                            WAIT = True
+                            return self.compare_answer(posit, 2)
+                        elif self.button_up_coords[2][0] <= x <= self.button_up_coords[2][0] + self.button_width and \
+                                self.button_up_coords[2][1] <= y <= self.button_up_coords[2][1] + self.button_height:
+                            WAIT = True
+                            return self.compare_answer(posit, 3)
 
     def compare_answer(self, posit, but):
         if but == posit:
@@ -950,7 +964,7 @@ class Food():
 
 
 def playing():
-    global CURRENT_SNAKE, SPEED_OF_SNAKE
+    global CURRENT_SNAKE, SPEED_OF_SNAKE, WAIT
     game1 = MainGame()
     snake = Snake()
     food = Food(game1.screen_width, game1.screen_height)
@@ -973,6 +987,9 @@ def playing():
 
         game.text_score_and_lives()
         pygame.display.flip()
+        while WAIT:
+            time.sleep(3)
+            WAIT = False
         game.fps.tick(SPEED_OF_SNAKE * CURRENT_SNAKE[3])
 
 
