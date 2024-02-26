@@ -4,16 +4,17 @@ import sys
 import os
 import sqlite3
 
-SIZE = (720, 460)
-BUTTON = [(128, 255, 0), 5]
+SIZE = (720, 460)  # общие размеры игрового поля
+BUTTON = [(128, 255, 0), 5]  # ((R, G, B), width of frame) - цвет и толщина рамки у кнопок в игре
 CURRENT_SNAKE = None  # Пример переменной: ('Уж', (0, 0, 0), 3, 1) - (Name, (R, G, B), Coeff_time, Coeff_speed))
-TIME_FOR_QUIZE = 15
-SPEED_OF_SNAKE = 15
-CURRENT_LEVEL = 1
-LIVES = 3
-SCORE = 0
+TIME_FOR_QUIZE = 15  # Стандартное время викторины (без множителя Coeff_time)
+SPEED_OF_SNAKE = 15  # Стандартное время викторины (без множителя Coeff_speed)
+CURRENT_LEVEL = None  # текущий уровень type==int
+LIVES = 3  # количество жизней в игре
+SCORE = 0  # счётчик результатов
 
 
+# установка змейки в соответствии с последним вобором игрока
 def make_current_snake():
     global CURRENT_SNAKE
     if CURRENT_SNAKE == None:
@@ -53,6 +54,7 @@ def make_current_snake():
 make_current_snake()
 
 
+# чась процедуры установки изображения (используется в нескольких классах) принимает имя изображения
 def set_fon_global(name):
     fullname = os.path.join('images', name)
     try:
@@ -64,6 +66,7 @@ def set_fon_global(name):
     return image
 
 
+# часть поцедуры установки текста принимает текст, высоту шрифта, координаты верхнего угла, цвет(по умолчанию белый)
 def set_text_global(text, letter_height, x_coord, y_coord, color="white"):
     font = pygame.font.Font(None, letter_height - 5)
     string_rendered = font.render(text, 1, pygame.Color(color))
@@ -73,7 +76,9 @@ def set_text_global(text, letter_height, x_coord, y_coord, color="white"):
     return string_rendered, intro_rect
 
 
+# создание стартового окна
 class MainGame():
+    # инициализация окна, формирование необходимых данных из глобальных перемнных
     def __init__(self):
         global SIZE, BUTTON
         pygame.init()
@@ -88,15 +93,17 @@ class MainGame():
 
         self.letter_height = int((self.screen_height * 6.52) // 100)
 
+    # отображение игровой поверхности
     def create_surface(self):
         self.play_surface = pygame.display.set_mode((self.screen_width, self.screen_height))
         pygame.display.set_caption('Математическая змейка')
 
-        self.set_fon()
-        self.set_title()
-        self.set_buttons()
-        self.set_information()
+        self.set_fon()  # установка фонового изображения
+        self.set_title()  # установка текстового заголовка страницы
+        self.set_buttons()  # создание кнопок
+        self.set_information()  # отображение информации о лучших результатах по уровням и текущего выбора змейки
 
+        # проверка взаимодействия пользователя с игрой
         while True:
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
@@ -108,21 +115,22 @@ class MainGame():
                     if self.button_up_coords[0][0] <= x <= self.button_up_coords[0][0] + self.button_width and \
                             self.button_up_coords[0][1] <= y <= self.button_up_coords[0][1] + self.button_height:
                         window = Choose_snake()
-                        window.create_surface()
+                        window.create_surface() # переход на окно выбора змейки
                     elif self.button_up_coords[1][0] <= x <= self.button_up_coords[1][0] + self.button_width and \
                             self.button_up_coords[1][1] <= y <= self.button_up_coords[1][1] + self.button_height:
                         window = Level_choice()
-                        window.create_surface()
-                        # return
+                        window.create_surface() # переход на окно выбора уровня
                     elif self.button_up_coords[2][0] <= x <= self.button_up_coords[2][0] + self.button_width and \
                             self.button_up_coords[2][1] <= y <= self.button_up_coords[2][1] + self.button_height:
-                        sys.exit()
+                        sys.exit() # выход из игры
             pygame.display.flip()
 
+    # установка фонового изображения
     def set_fon(self):
         fon = pygame.transform.scale(set_fon_global('forest.jpg'), (self.screen_width, self.screen_height))
         self.play_surface.blit(fon, (0, 0))
 
+    # установка текстового заголовка страницы
     def set_title(self):
         text = "Главное меню"
         x_coord = self.screen_width / 2 - ((len(text) / 2) * \
@@ -133,6 +141,7 @@ class MainGame():
                                                       x_coord, y_coord)
         self.play_surface.blit(string_rendered, intro_rect)
 
+    # создание кнопок
     def set_buttons(self):
         text_for_buttons = ["Выбрать змейку", "Играть", "Выйти"]
         w = self.screen_width
@@ -151,9 +160,10 @@ class MainGame():
             string_rendered, intro_rect = set_text_global(text_for_buttons[i], self.letter_height, x_coord, y_coord)
             self.play_surface.blit(string_rendered, intro_rect)
 
+    # отображение информации о лучших результатах по уровням и текущего выбора змейки
     def set_information(self):
         global CURRENT_SNAKE
-        scores = self.get_from_data()
+        scores = self.get_from_data()  # запрос в базу данных для получения актуальной информациии
         named_text = ["Текущая змейка: ", "Лучшие результаты по уровням:"]
         levels_text = ["Первый уровень:        ", "Второй уровень:         ", "Третий  уровень:        ",
                        "Четвёртый уровень:   ", "Пятый уровень:          "]
@@ -178,6 +188,7 @@ class MainGame():
             y_coord += self.letter_height - (self.screen_height * 3.26) / 100
             y_coord += intro_rect.height
 
+    # запрос в базу данных для получения актуальной информациии
     def get_from_data(self):
         fullname = os.path.join('data', 'Permanent_base.db')
         try:
@@ -196,7 +207,9 @@ class MainGame():
         return records
 
 
+# создание окна для выбора змейки
 class Choose_snake():
+    # инициализация окна, формирование необходимых данных из глобальных перемнных
     def __init__(self):
         global SIZE
         pygame.init()
@@ -212,14 +225,16 @@ class Choose_snake():
 
         self.letter_height = int((self.screen_height * 6.52) // 100)
 
+    # отображение игровой поверхности
     def create_surface(self):
         self.terrarium_surface = pygame.display.set_mode((self.screen_width, self.screen_height))
         pygame.display.set_caption('Математическая змейка')
-        self.set_fon()
-        self.set_title()
-        self.set_text()
-        self.set_buttons()
+        self.set_fon()  # установка фонового изображения
+        self.set_title()  # установка текстового заголовка страницы
+        self.set_text()  # установка текстовой метки
+        self.set_buttons()  # создание кнопок
 
+        # проверка взаимодействия пользователя с игрой
         while True:
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
@@ -230,26 +245,28 @@ class Choose_snake():
                     y = pos[1]
                     if self.button_up_coords[0][0] <= x <= self.button_up_coords[0][0] + self.button_width and \
                             self.button_up_coords[0][1] <= y <= self.button_up_coords[0][1] + self.button_height:
-                        self.set_snake(1)
+                        self.set_snake(1) # обновление текущей змейки в глобальных переменных по id выбраной змейки
                     elif self.button_up_coords[1][0] <= x <= self.button_up_coords[1][0] + self.button_width and \
                             self.button_up_coords[1][1] <= y <= self.button_up_coords[1][1] + self.button_height:
-                        self.set_snake(2)
+                        self.set_snake(2) # обновление текущей змейки в глобальных переменных по id выбраной змейки
                     elif self.button_up_coords[2][0] <= x <= self.button_up_coords[2][0] + self.button_width and \
                             self.button_up_coords[2][1] <= y <= self.button_up_coords[2][1] + self.button_height:
-                        self.set_snake(3)
+                        self.set_snake(3) # обновление текущей змейки в глобальных переменных по id выбраной змейки
                     elif self.button_up_coords[3][0] <= x <= self.button_up_coords[3][0] + self.button_width and \
                             self.button_up_coords[3][1] <= y <= self.button_up_coords[3][1] + self.button_height:
-                        self.set_snake(4)
+                        self.set_snake(4) # обновление текущей змейки в глобальных переменных по id выбраной змейки
                     elif self.button_up_coords[4][0] <= x <= self.button_up_coords[4][0] + self.button_width and \
                             self.button_up_coords[4][1] <= y <= self.button_up_coords[4][1] + self.button_height:
                         window = MainGame()
-                        window.create_surface()
+                        window.create_surface() # переход на стартовое окно
             pygame.display.flip()
 
+    # установка фонового изображения
     def set_fon(self):
         fon = pygame.transform.scale(set_fon_global('Terrarium.jpg'), (self.screen_width, self.screen_height))
         self.terrarium_surface.blit(fon, (0, 0))
 
+    # установка текстового заголовка страницы
     def set_title(self):
         text = "Террариум"
         x_coord = self.screen_width / 2 - ((len(text) / 2) * \
@@ -260,9 +277,17 @@ class Choose_snake():
                                                       x_coord, y_coord, "black")
         self.terrarium_surface.blit(string_rendered, intro_rect)
 
+     # установка текстовой метки
+    def set_text(self):
+        text = "Выберите змейку (по имени, цвету или способностям):"
+        string_rendered, intro_rect = set_text_global(text, self.letter_height, self.screen_width * 2.77 / 100,
+                                                      self.screen_height * 10.3 / 100)
+        self.terrarium_surface.blit(string_rendered, intro_rect)
+
+    # создание кнопок
     def set_buttons(self):
-        snakes = self.get_information_about_snakes()
-        self.set_informatin(snakes)
+        snakes = self.get_information_about_snakes()  # запрос в базу данных для получения всей информации о змейках
+        self.set_informatin(snakes)  # вывод информации о змейках на экран
         snakes.append(("На главную", self.color[0], self.color[1], self.color[2]))
         w = self.screen_width
         h = self.screen_height
@@ -286,12 +311,25 @@ class Choose_snake():
                                                               "black")
             self.terrarium_surface.blit(string_rendered, intro_rect)
 
-    def set_text(self):
-        text = "Выберите змейку (по имени, цвету или способностям):"
-        string_rendered, intro_rect = set_text_global(text, self.letter_height, self.screen_width * 2.77 / 100,
-                                                      self.screen_height * 10.3 / 100)
-        self.terrarium_surface.blit(string_rendered, intro_rect)
+    # запрос в базу данных для получения всей информации о змейках
+    def get_information_about_snakes(self):
+        fullname = os.path.join('data', 'Permanent_base.db')
+        try:
+            sqlite_connection = sqlite3.connect(fullname)
+            cursor = sqlite_connection.cursor()
 
+            sqlite_select_query = """SELECT Name, Red, Green, Blue, Coeff_time, Coeff_speed from Snakes"""
+            cursor.execute(sqlite_select_query)
+            snakes = cursor.fetchall()
+            cursor.close()
+            sqlite_connection.close()
+
+        except sqlite3.Error as error:
+            print("Ошибка при работе с SQLite", error)
+
+        return snakes
+
+    # вывод информации о змейках на экран. Функция принимает всю информацию о змейках
     def set_informatin(self, snakes):
         text_for_buttons = []
         for snake in snakes:
@@ -314,6 +352,7 @@ class Choose_snake():
             string_rendered, intro_rect = set_text_global(text_for_buttons[i], self.letter_height, x_coord, y_coord)
             self.terrarium_surface.blit(string_rendered, intro_rect)
 
+    # запрос в базу данных по id для получения информации о  конкретной змейке
     def get_from_snakes(self, id):
         fullname = os.path.join('data', 'Permanent_base.db')
         try:
@@ -331,6 +370,7 @@ class Choose_snake():
 
         return records
 
+    # обновление актуальной информации о последнем выборе пользователя. Получает и устанавливает id змейки в БД
     def set_for_last_information(self, id):
         fullname = os.path.join('data', 'Permanent_base.db')
         try:
@@ -344,32 +384,19 @@ class Choose_snake():
         except sqlite3.Error as error:
             print("Ошибка при работе с SQLite", error)
 
+    # обновление текущей змейки в глобальных переменных по id выбраной змейки
     def set_snake(self, id):
         global CURRENT_SNAKE
-        corteg = self.get_from_snakes(id)
-        CURRENT_SNAKE = (corteg[1], (corteg[2], corteg[3], corteg[4]), corteg[5], corteg[6])
-        self.set_for_last_information(corteg[0])
+        corteg = self.get_from_snakes(id)  # запрос в базу данных по id для получения информации о змейке
+        CURRENT_SNAKE = (corteg[1],
+                         (corteg[2], corteg[3], corteg[4]), corteg[5], corteg[6])  # обновление глобальной переменной
+        self.set_for_last_information(corteg[0]) # обновление актуальной информации о последнем выборе пользователя.
+        # Получает и устанавливает id змейки в БД
         window = MainGame()
-        window.create_surface()
-
-    def get_information_about_snakes(self):
-        fullname = os.path.join('data', 'Permanent_base.db')
-        try:
-            sqlite_connection = sqlite3.connect(fullname)
-            cursor = sqlite_connection.cursor()
-
-            sqlite_select_query = """SELECT Name, Red, Green, Blue, Coeff_time, Coeff_speed from Snakes"""
-            cursor.execute(sqlite_select_query)
-            snakes = cursor.fetchall()
-            cursor.close()
-            sqlite_connection.close()
-
-        except sqlite3.Error as error:
-            print("Ошибка при работе с SQLite", error)
-
-        return snakes
+        window.create_surface()  # переход на стартовое окно
 
 
+# создание окна выбора змейки
 class Level_choice():
     def __init__(self):
         global SIZE, BUTTON
@@ -390,9 +417,9 @@ class Level_choice():
         self.choice_surface = pygame.display.set_mode((self.screen_width, self.screen_height))
         pygame.display.set_caption('Математическая змейка')
 
-        self.set_title()
-        self.set_text()
-        self.set_buttons()
+        self.set_title() # установка текстового заголовка
+        self.set_text() # установка описания игры
+        self.set_buttons() # установка кнопок
 
         while True:
             for event in pygame.event.get():
@@ -405,29 +432,30 @@ class Level_choice():
                     if self.button_up_coords[0][0] <= x <= self.button_up_coords[0][0] + self.button_width and \
                             self.button_up_coords[0][1] <= y <= self.button_up_coords[0][1] + self.button_height:
                         CURRENT_LEVEL = 1
-                        playing()
+                        playing() # присвоение глобального текущего уровня. запуск игрового процесса
                     elif self.button_up_coords[1][0] <= x <= self.button_up_coords[1][0] + self.button_width and \
                             self.button_up_coords[1][1] <= y <= self.button_up_coords[1][1] + self.button_height:
                         CURRENT_LEVEL = 2
-                        playing()
+                        playing() # присвоение глобального текущего уровня. запуск игрового процесса
                     elif self.button_up_coords[2][0] <= x <= self.button_up_coords[2][0] + self.button_width and \
                             self.button_up_coords[2][1] <= y <= self.button_up_coords[2][1] + self.button_height:
                         CURRENT_LEVEL = 3
-                        playing()
+                        playing() # присвоение глобального текущего уровня. запуск игрового процесса
                     elif self.button_up_coords[3][0] <= x <= self.button_up_coords[3][0] + self.button_width and \
                             self.button_up_coords[3][1] <= y <= self.button_up_coords[3][1] + self.button_height:
                         CURRENT_LEVEL = 4
-                        playing()
+                        playing() # присвоение глобального текущего уровня. запуск игрового процесса
                     elif self.button_up_coords[4][0] <= x <= self.button_up_coords[4][0] + self.button_width and \
                             self.button_up_coords[4][1] <= y <= self.button_up_coords[4][1] + self.button_height:
                         CURRENT_LEVEL = 5
-                        playing()
+                        playing() # присвоение глобального текущего уровня. запуск игрового процесса
                     elif self.button_up_coords[5][0] <= x <= self.button_up_coords[5][0] + self.button_width and \
                             self.button_up_coords[5][1] <= y <= self.button_up_coords[5][1] + self.button_height:
                         window = MainGame()
-                        window.create_surface()
+                        window.create_surface() # возврат на стартовое окно
             pygame.display.flip()
 
+    #установка текстового заголовка
     def set_title(self):
         text = "Уровни"
         x_coord = self.screen_width / 2 - ((len(text) / 2) * \
@@ -438,6 +466,7 @@ class Level_choice():
                                                       x_coord, y_coord)
         self.choice_surface.blit(string_rendered, intro_rect)
 
+    #установка описания игры
     def set_text(self):
         text = "Выберите уровень:"
         intro_text = ["Описание: При поедании ", "яблока - появляется математическая", "викторина на время.",
@@ -457,6 +486,7 @@ class Level_choice():
             y_coord += (self.screen_height * 2.17) / 100
             y_coord += intro_rect.height
 
+    # установка кнопок
     def set_buttons(self):
         text_for_buttons = ["Первый уровень: easy", "Второй уровень: easy", "Третий уровень: middle",
                             "Четвёртый уровень: hard", "Пятый уровень: impossible", "На главную"]
@@ -525,7 +555,7 @@ class Game_palce():
                 if event.key == pygame.K_ESCAPE or event.key == pygame.K_BACKSPACE:
                     sys.exit()
                 else:
-                   return
+                    return
 
     def text_score_and_lives(self, rasp=1):
         global SCORE, LIVES
