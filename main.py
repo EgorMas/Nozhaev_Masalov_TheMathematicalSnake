@@ -78,6 +78,7 @@ def set_text_global(text, letter_height, x_coord, y_coord, color="white"):
     intro_rect.y = y_coord
     return string_rendered, intro_rect
 
+
 # создание стартового окна
 class MainGame():
     # инициализация окна, формирование необходимых данных из глобальных перемнных
@@ -118,14 +119,14 @@ class MainGame():
                         if self.button_up_coords[0][0] <= x <= self.button_up_coords[0][0] + self.button_width and \
                                 self.button_up_coords[0][1] <= y <= self.button_up_coords[0][1] + self.button_height:
                             window = Choose_snake()
-                            window.create_surface() # переход на окно выбора змейки
+                            window.create_surface()  # переход на окно выбора змейки
                         elif self.button_up_coords[1][0] <= x <= self.button_up_coords[1][0] + self.button_width and \
                                 self.button_up_coords[1][1] <= y <= self.button_up_coords[1][1] + self.button_height:
                             window = Level_choice()
-                            window.create_surface() # переход на окно выбора уровня
+                            window.create_surface()  # переход на окно выбора уровня
                         elif self.button_up_coords[2][0] <= x <= self.button_up_coords[2][0] + self.button_width and \
                                 self.button_up_coords[2][1] <= y <= self.button_up_coords[2][1] + self.button_height:
-                            sys.exit() # выход из игры
+                            sys.exit()  # выход из игры
             pygame.display.flip()
 
     # установка фонового изображения
@@ -249,20 +250,20 @@ class Choose_snake():
                         y = pos[1]
                         if self.button_up_coords[0][0] <= x <= self.button_up_coords[0][0] + self.button_width and \
                                 self.button_up_coords[0][1] <= y <= self.button_up_coords[0][1] + self.button_height:
-                            self.set_snake(1) # обновление текущей змейки в глобальных переменных по id выбраной змейки
+                            self.set_snake(1)  # обновление текущей змейки в глобальных переменных по id выбраной змейки
                         elif self.button_up_coords[1][0] <= x <= self.button_up_coords[1][0] + self.button_width and \
                                 self.button_up_coords[1][1] <= y <= self.button_up_coords[1][1] + self.button_height:
-                            self.set_snake(2) # обновление текущей змейки в глобальных переменных по id выбраной змейки
+                            self.set_snake(2)  # обновление текущей змейки в глобальных переменных по id выбраной змейки
                         elif self.button_up_coords[2][0] <= x <= self.button_up_coords[2][0] + self.button_width and \
                                 self.button_up_coords[2][1] <= y <= self.button_up_coords[2][1] + self.button_height:
-                            self.set_snake(3) # обновление текущей змейки в глобальных переменных по id выбраной змейки
+                            self.set_snake(3)  # обновление текущей змейки в глобальных переменных по id выбраной змейки
                         elif self.button_up_coords[3][0] <= x <= self.button_up_coords[3][0] + self.button_width and \
                                 self.button_up_coords[3][1] <= y <= self.button_up_coords[3][1] + self.button_height:
-                            self.set_snake(4) # обновление текущей змейки в глобальных переменных по id выбраной змейки
+                            self.set_snake(4)  # обновление текущей змейки в глобальных переменных по id выбраной змейки
                         elif self.button_up_coords[4][0] <= x <= self.button_up_coords[4][0] + self.button_width and \
                                 self.button_up_coords[4][1] <= y <= self.button_up_coords[4][1] + self.button_height:
                             window = MainGame()
-                            window.create_surface() # переход на стартовое окно
+                            window.create_surface()  # переход на стартовое окно
             pygame.display.flip()
 
     # установка фонового изображения
@@ -281,7 +282,7 @@ class Choose_snake():
                                                       x_coord, y_coord, "black")
         self.terrarium_surface.blit(string_rendered, intro_rect)
 
-     # установка текстовой метки
+    # установка текстовой метки
     def set_text(self):
         text = "Выберите змейку (по имени, цвету или способностям):"
         string_rendered, intro_rect = set_text_global(text, self.letter_height, self.screen_width * 2.77 / 100,
@@ -394,7 +395,7 @@ class Choose_snake():
         corteg = self.get_from_snakes(id)  # запрос в базу данных по id для получения информации о змейке
         CURRENT_SNAKE = (corteg[1],
                          (corteg[2], corteg[3], corteg[4]), corteg[5], corteg[6])  # обновление глобальной переменной
-        self.set_for_last_information(corteg[0]) # обновление актуальной информации о последнем выборе пользователя.
+        self.set_for_last_information(corteg[0])  # обновление актуальной информации о последнем выборе пользователя.
         # Получает и устанавливает id змейки в БД
         window = MainGame()
         window.create_surface()  # переход на стартовое окно
@@ -421,9 +422,9 @@ class Level_choice():
         self.choice_surface = pygame.display.set_mode((self.screen_width, self.screen_height))
         pygame.display.set_caption('Математическая змейка')
 
-        self.set_title() # установка текстового заголовка
-        self.set_text() # установка описания игры
-        self.set_buttons() # установка кнопок
+        self.set_title()  # установка текстового заголовка
+        self.set_text()  # установка описания игры
+        self.set_buttons()  # установка кнопок
 
         while True:
             for event in pygame.event.get():
@@ -437,30 +438,30 @@ class Level_choice():
                         if self.button_up_coords[0][0] <= x <= self.button_up_coords[0][0] + self.button_width and \
                                 self.button_up_coords[0][1] <= y <= self.button_up_coords[0][1] + self.button_height:
                             CURRENT_LEVEL = 1
-                            playing() # присвоение глобального текущего уровня. запуск игрового процесса
+                            playing()  # присвоение глобального текущего уровня. запуск игрового процесса
                         elif self.button_up_coords[1][0] <= x <= self.button_up_coords[1][0] + self.button_width and \
                                 self.button_up_coords[1][1] <= y <= self.button_up_coords[1][1] + self.button_height:
                             CURRENT_LEVEL = 2
-                            playing() # присвоение глобального текущего уровня. запуск игрового процесса
+                            playing()  # присвоение глобального текущего уровня. запуск игрового процесса
                         elif self.button_up_coords[2][0] <= x <= self.button_up_coords[2][0] + self.button_width and \
                                 self.button_up_coords[2][1] <= y <= self.button_up_coords[2][1] + self.button_height:
                             CURRENT_LEVEL = 3
-                            playing() # присвоение глобального текущего уровня. запуск игрового процесса
+                            playing()  # присвоение глобального текущего уровня. запуск игрового процесса
                         elif self.button_up_coords[3][0] <= x <= self.button_up_coords[3][0] + self.button_width and \
                                 self.button_up_coords[3][1] <= y <= self.button_up_coords[3][1] + self.button_height:
                             CURRENT_LEVEL = 4
-                            playing() # присвоение глобального текущего уровня. запуск игрового процесса
+                            playing()  # присвоение глобального текущего уровня. запуск игрового процесса
                         elif self.button_up_coords[4][0] <= x <= self.button_up_coords[4][0] + self.button_width and \
                                 self.button_up_coords[4][1] <= y <= self.button_up_coords[4][1] + self.button_height:
                             CURRENT_LEVEL = 5
-                            playing() # присвоение глобального текущего уровня. запуск игрового процесса
+                            playing()  # присвоение глобального текущего уровня. запуск игрового процесса
                         elif self.button_up_coords[5][0] <= x <= self.button_up_coords[5][0] + self.button_width and \
                                 self.button_up_coords[5][1] <= y <= self.button_up_coords[5][1] + self.button_height:
                             window = MainGame()
-                            window.create_surface() # возврат на стартовое окно
+                            window.create_surface()  # возврат на стартовое окно
             pygame.display.flip()
 
-    #установка текстового заголовка
+    # установка текстового заголовка
     def set_title(self):
         text = "Уровни"
         x_coord = self.screen_width / 2 - ((len(text) / 2) * \
@@ -471,7 +472,7 @@ class Level_choice():
                                                       x_coord, y_coord)
         self.choice_surface.blit(string_rendered, intro_rect)
 
-    #установка описания игры
+    # установка описания игры
     def set_text(self):
         text = "Выберите уровень:"
         intro_text = ["Описание: При поедании ", "яблока - появляется математическая", "викторина на время.",
