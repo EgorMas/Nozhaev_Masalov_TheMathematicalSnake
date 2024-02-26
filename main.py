@@ -924,6 +924,7 @@ class Food():
 
             time -= 1
             if time == 0:
+                WAIT = True
                 if LIVES == 0:
                     self.end()
                 return 0
